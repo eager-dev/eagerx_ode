@@ -1,5 +1,5 @@
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 import eagerx_ode.bridge  # noqa: F401
-import eagerx_ode.enginenodes  # noqa: F401
-import eagerx_ode.enginestates  # noqa: F401
+import eagerx_ode.engine_nodes  # noqa: F401
+import eagerx_ode.engine_states  # noqa: F401
 import eagerx_ode.pendulum.objects  # noqa: F401

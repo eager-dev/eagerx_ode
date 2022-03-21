@@ -5,12 +5,12 @@ import eagerx.core.register as register
 
 class OdeEngineState(EngineState):
     @staticmethod
-    @register.spec("OdeSimState", EngineState)
+    @register.spec("OdeEngineState", EngineState)
     def spec(spec):
         spec.initialize(OdeEngineState)
 
     def initialize(self):
-        self.obj_name = self.agnostic_params["name"]
+        self.obj_name = self.config["name"]
 
     def reset(self, state, done):
         self.simulator[self.obj_name]["state"] = np.squeeze(state.data)
@@ -21,10 +21,10 @@ class OdeParameters(EngineState):
     @register.spec("OdeParameters", EngineState)
     def spec(spec, indices):
         spec.initialize(OdeParameters)
-        spec.agnostic_params.indices = indices
+        spec.config.indices = indices
 
     def initialize(self, indices):
-        self.obj_name = self.agnostic_params["name"]
+        self.obj_name = self.config["name"]
         self.indices = indices
 
     def reset(self, state, done):

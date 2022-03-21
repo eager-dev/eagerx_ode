@@ -75,7 +75,7 @@ class OdeBridge(Bridge):
         # add object to simulator (we have a ref to the simulator with self.simulator)
         rospy.loginfo(f'Adding object "{config["name"]}" of type "{config["entity_id"]}" to the simulator.')
 
-        # Extract relevant agnostic_params
+        # Extract relevant agnostic params
         obj_name = config["name"]
         ode = get_attribute_from_module(bridge_config["ode"])
         Dfun = get_attribute_from_module(bridge_config["Dfun"]) if "Dfun" in config else None

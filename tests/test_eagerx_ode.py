@@ -2,7 +2,7 @@
 from eagerx import Object, Bridge, initialize, log, process
 
 # Environment
-from eagerx.core.env import EagerEnv
+from eagerx.core.env import EagerxEnv
 from eagerx.core.graph import Graph
 from eagerx.wrappers import Flatten
 
@@ -18,10 +18,9 @@ import pytest
 NP = process.NEW_PROCESS
 ENV = process.ENVIRONMENT
 
-@pytest.mark.timeout(60)
 @pytest.mark.parametrize(
     "eps, steps, is_reactive, rtf, p",
-    [(3, 3, True, 0, ENV), (20, 40, True, 0, NP), (3, 3, True, 4, NP), (20, 40, False, 4, NP), (3, 3, False, 4, ENV)],
+    [(3, 3, True, 0, ENV)],
 )
 def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     # Start roscore
@@ -40,7 +39,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
         "Eagerx_Ode_Pendulum",
         "pendulum",
         sensors=["pendulum_output", "action_applied"],
-        states=["model_state"],
+        states=["model_state", "model_parameters"],
     )
     graph.add(pendulum)
 
@@ -70,7 +69,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
         return obs, -cost, done, info
 
     # Initialize Environment
-    env = Flatten(EagerEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn))
+    env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn))
 
     # First reset
     env.reset()

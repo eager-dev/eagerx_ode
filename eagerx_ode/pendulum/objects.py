@@ -20,7 +20,7 @@ class Pendulum(Object):
     @staticmethod
     @register.sensors(pendulum_output=Float32MultiArray, action_applied=Float32MultiArray)
     @register.actuators(pendulum_input=Float32MultiArray)
-    @register.simstates(model_state=Float32MultiArray)
+    @register.engine_states(model_state=Float32MultiArray, model_parameters=Float32MultiArray)
     @register.config()
     def agnostic(spec: ObjectSpec, rate):
         """Agnostic definition of the pendulum"""
@@ -52,6 +52,14 @@ class Pendulum(Object):
             high=[3.14159265359, 9],
             dtype="float32",
         )
+
+        # Set model_parameters properties: (space_converters) # [J, m, l, b0, K, R, c, a]
+        fixed = [0.000189238, 0.0563641, 0.0437891, 0.000142205, 0.0502769, 9.83536]
+        diff = [0, 0, 0, 0.05, 0.05]  # Percentual delta with respect to fixed value
+        low = [val - diff * val for val, diff in zip(fixed, diff)]
+        high = [val + diff * val for val, diff in zip(fixed, diff)]
+        spec.states.model_parameters.space_converter = SpaceConverter.make('Space_Float32MultiArray', low=low,
+                                                                           high=high, dtype='float32')
 
     @staticmethod
     @register.spec(entity_id, Object)
@@ -93,8 +101,9 @@ class Pendulum(Object):
             9.83536,
         ]
 
-        # Create simstates (no agnostic states defined in this case)
-        spec.OdeBridge.states.model_state = EngineState.make("OdeSimState")
+        # Create engine states (no agnostic states defined in this case)
+        spec.OdeBridge.states.model_state = EngineState.make("OdeEngineState")
+        spec.OdeBridge.states.model_parameters = EngineState.make('OdeParameters', list(range(5)))
 
         # Create sensor engine nodes
         obs = EngineNode.make(
