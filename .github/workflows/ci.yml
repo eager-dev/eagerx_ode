@@ -94,7 +94,7 @@ jobs:
       #    upload code coverage to CodeClimate
       #----------------------------------------------
       - name: Publish code coverage to CodeClimate
-        uses: paambaati/codeclimate-action@v2.7.5
+        uses: paambaati/codeclimate-action@v3.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
   release:
