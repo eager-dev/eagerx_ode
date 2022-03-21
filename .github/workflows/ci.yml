@@ -65,6 +65,8 @@ jobs:
       #----------------------------------------------
       # check codestyle & lint
       #----------------------------------------------
+      - name: Format using black
+        uses: psf/black@stable
       - name: Check codestyle
         run: |
           make check-codestyle
