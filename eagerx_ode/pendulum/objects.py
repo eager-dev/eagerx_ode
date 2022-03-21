@@ -47,7 +47,10 @@ class Pendulum(Object):
 
         # Set model_state properties: (space_converters)
         spec.states.model_state.space_converter = SpaceConverter.make(
-            "Space_Float32MultiArray", low=[-3.14159265359, -9], high=[3.14159265359, 9], dtype="float32",
+            "Space_Float32MultiArray",
+            low=[-3.14159265359, -9],
+            high=[3.14159265359, 9],
+            dtype="float32",
         )
 
         # Set model_parameters properties: (space_converters) # [J, m, l, b0, K, R, c, a]
@@ -100,11 +103,20 @@ class Pendulum(Object):
         spec.OdeBridge.states.model_parameters = EngineState.make("OdeParameters", list(range(5)))
 
         # Create sensor engine nodes
-        obs = EngineNode.make("OdeOutput", "pendulum_output", rate=spec.sensors.pendulum_output.rate, process=2,)
+        obs = EngineNode.make(
+            "OdeOutput",
+            "pendulum_output",
+            rate=spec.sensors.pendulum_output.rate,
+            process=2,
+        )
 
         # Create actuator engine nodes
         action = EngineNode.make(
-            "OdeInput", "pendulum_actuator", rate=spec.actuators.pendulum_input.rate, process=2, default_action=[0],
+            "OdeInput",
+            "pendulum_actuator",
+            rate=spec.actuators.pendulum_input.rate,
+            process=2,
+            default_action=[0],
         )
 
         # Connect all engine nodes
@@ -116,6 +128,8 @@ class Pendulum(Object):
         applied = EngineNode.make("ActionApplied", "applied", rate=spec.sensors.action_applied.rate, process=2)
         graph.add(applied)
         graph.connect(
-            source=action.outputs.action_applied, target=applied.inputs.action_applied, skip=True,
+            source=action.outputs.action_applied,
+            target=applied.inputs.action_applied,
+            skip=True,
         )
         graph.connect(source=applied.outputs.action_applied, sensor="action_applied")
