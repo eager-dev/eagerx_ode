@@ -84,10 +84,9 @@ class Pendulum(Object):
     def ode_bridge(spec: ObjectSpec, graph: EngineGraph):
         """Engine-specific implementation (OdeBridge) of the object."""
         # Import any object specific entities for this bridge
-        import eagerx_ode.pendulum.pendulum_ode  # noqa # pylint: disable=unused-import
 
         # Set object arguments (nothing to set here in this case)
-        spec.OdeBridge.ode = "eagerx_ode.pendulum.pendulum_ode/pendulum_ode"
+        spec.OdeBridge.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
         # Set default params of pendulum ode [J, m, l, b0, K, R].
         spec.OdeBridge.ode_params = [
             0.000189238,
