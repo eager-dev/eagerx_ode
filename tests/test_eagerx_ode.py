@@ -10,6 +10,8 @@ from eagerx.wrappers import Flatten
 import eagerx.nodes  # Registers butterworth_filter # noqa # pylint: disable=unused-import
 import eagerx_ode  # Registers OdeBridge # noqa # pylint: disable=unused-import
 
+import tests.pendulum.objects # Registers pendulum # noqa # pylint: disable=unused-import
+
 # Other
 import numpy as np
 
