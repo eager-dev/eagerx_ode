@@ -14,14 +14,6 @@ eagerx_ode package
    :target: https://github.com/eager-dev/eagerx_ode/actions/workflows/ci.yml
    :alt: Continuous Integration
 
-.. image:: https://api.codeclimate.com/v1/badges/3146dce3dd4c3537834c/maintainability
-   :target: https://codeclimate.com/github/eager-dev/eagerx_ode/maintainability
-   :alt: Maintainability
-
-.. image:: https://api.codeclimate.com/v1/badges/3146dce3dd4c3537834c/test_coverage
-   :target: https://codeclimate.com/github/eager-dev/eagerx_ode/test_coverage
-   :alt: Test Coverage
-
 .. contents:: Table of Contents
     :depth: 2
 
