@@ -18,14 +18,27 @@ eagerx_ode package
     :depth: 2
 
 What is the *eagerx_ode* package?
-=================
+=================================
 This repository/package contains the *OdeBridge* for simulating robots based on ordinary differential equations (ODEs) in EAGERx.
 EAGERx (Engine Agnostic Gym Environments for Robotics) enables users to easily define new tasks, switch from one sensor to another, and switch from simulation to reality with a single line of code by being invariant to the physics engine.
 `The core repository is available here <https://github.com/eager-dev/eagerx>`_.
 `Full documentation and tutorials (including package creation and contributing) are available here <https://eagerx.readthedocs.io>`_.
 
+Installation
+============
+
+You can install the package using pip:
+
+.. code:: shell
+
+    pip3 install eagerx-ode
+
+.. note::
+    EAGERx depends on a minimal ROS installation. Fortunately, you **can** use eagerx anywhere as you would any python package,
+    so it does **not** impose a ROS package structure on your project.
+
 Cite EAGERx
-===============
+===========
 If you are using EAGERx for your scientific publications, please cite:
 
 .. code:: bibtex
