@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.7 (2022-04-14)
+### Fix
+* All messages of observation and action_applied now inputs to render_fn ([`c279562`](https://github.com/eager-dev/eagerx_ode/commit/c279562d9bb75def98ef4709dd76a91a59e8fbaf))
+
 ## v0.1.6 (2022-04-14)
 ### Fix
 * Add OdeRender EngineNode ([`f383d37`](https://github.com/eager-dev/eagerx_ode/commit/f383d372f45103f523c8d721a87ced8dd11594bf))
