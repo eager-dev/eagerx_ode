@@ -1,5 +1,6 @@
 # ROS IMPORTS
 from std_msgs.msg import Float32MultiArray
+from sensor_msgs.msg import Image
 
 # EAGERx IMPORTS
 from eagerx_ode.bridge import OdeBridge
@@ -18,10 +19,10 @@ class Pendulum(Object):
     entity_id = "Eagerx_Ode_Pendulum"
 
     @staticmethod
-    @register.sensors(pendulum_output=Float32MultiArray, action_applied=Float32MultiArray)
+    @register.sensors(pendulum_output=Float32MultiArray, action_applied=Float32MultiArray, image=Image)
     @register.actuators(pendulum_input=Float32MultiArray)
     @register.engine_states(model_state=Float32MultiArray, model_parameters=Float32MultiArray)
-    @register.config()
+    @register.config(render_shape=[480, 480])
     def agnostic(spec: ObjectSpec, rate):
         """Agnostic definition of the pendulum"""
         # Register standard converters, space_converters, and processors
@@ -36,6 +37,11 @@ class Pendulum(Object):
         spec.sensors.action_applied.rate = rate
         spec.sensors.action_applied.space_converter = SpaceConverter.make(
             "Space_Float32MultiArray", low=[-3], high=[3], dtype="float32"
+        )
+
+        spec.sensors.image.rate = 15
+        spec.sensors.image.space_converter = SpaceConverter.make(
+            "Space_Image", low=0, high=1, shape=spec.config.render_shape, dtype="float32"
         )
 
         # Set actuator properties: (space_converters, rate, etc...)
@@ -72,9 +78,12 @@ class Pendulum(Object):
         # Modify default agnostic params
         # Only allow changes to the agnostic params (rates, windows, (space)converters, etc...
         spec.config.name = name
-        spec.config.sensors = sensors if sensors else ["pendulum_output", "action_applied"]
+        spec.config.sensors = sensors if sensors else ["pendulum_output", "action_applied", "image"]
         spec.config.actuators = ["pendulum_input"]
         spec.config.states = states if states else ["model_state"]
+
+        # Add registered agnostic params
+        spec.config.render_shape = [480, 480]
 
         # Add bridge implementation
         Pendulum.agnostic(spec, rate)
@@ -108,6 +117,11 @@ class Pendulum(Object):
             rate=spec.sensors.pendulum_output.rate,
             process=2,
         )
+        image = EngineNode.make(
+            "OdeRender", "image", shape=spec.config.render_shape,
+            render_fn="tests.pendulum.pendulum_render/pendulum_render_fn",
+            rate=spec.sensors.image.rate, process=0,
+        )
 
         # Create actuator engine nodes
         action = EngineNode.make(
@@ -119,9 +133,12 @@ class Pendulum(Object):
         )
 
         # Connect all engine nodes
-        graph.add([obs, action])
+        graph.add([obs, image, action])
         graph.connect(source=obs.outputs.observation, sensor="pendulum_output")
         graph.connect(actuator="pendulum_input", target=action.inputs.action)
+        graph.connect(source=action.outputs.action_applied, target=image.inputs.action_applied)
+        graph.connect(source=obs.outputs.observation, target=image.inputs.observation)
+        graph.connect(source=image.outputs.image, sensor="image")
 
         # Add action applied
         applied = EngineNode.make("ActionApplied", "applied", rate=spec.sensors.action_applied.rate, process=2)

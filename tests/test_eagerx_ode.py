@@ -40,7 +40,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     pendulum = Object.make(
         "Eagerx_Ode_Pendulum",
         "pendulum",
-        sensors=["pendulum_output", "action_applied"],
+        sensors=["pendulum_output", "action_applied", "image"],
         states=["model_state", "model_parameters"],
     )
     graph.add(pendulum)
@@ -49,6 +49,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     graph.connect(action="action", target=pendulum.actuators.pendulum_input)
     graph.connect(source=pendulum.sensors.pendulum_output, observation="observation", window=1)
     graph.connect(source=pendulum.sensors.action_applied, observation="action_applied", window=1)
+    graph.render(pendulum.sensors.image, rate=10)
 
     # Define bridges
     bridge = Bridge.make("OdeBridge", rate=rate, is_reactive=is_reactive, real_time_factor=rtf, process=bridge_p)
@@ -72,6 +73,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
 
     # Initialize Environment
     env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn))
+    # env.render("human")
 
     # First reset
     env.reset()

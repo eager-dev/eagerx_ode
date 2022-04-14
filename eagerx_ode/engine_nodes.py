@@ -2,11 +2,15 @@ from typing import Optional, List
 import numpy as np
 
 # IMPORT ROS
-from std_msgs.msg import UInt64, Float32MultiArray
+import rospy
+import cv_bridge
+from std_msgs.msg import UInt64, Float32MultiArray, Bool
+from sensor_msgs.msg import Image
+
 
 # IMPORT EAGERX
 from eagerx.core.constants import process
-from eagerx.utils.utils import Msg
+from eagerx.utils.utils import Msg, get_attribute_from_module
 from eagerx.core.entities import EngineNode
 import eagerx.core.register as register
 
@@ -153,3 +157,75 @@ class OdeInput(EngineNode):
 
         # Send action that has been applied.
         return dict(action_applied=action.msgs[-1])
+
+
+class OdeRender(EngineNode):
+    @staticmethod
+    @register.spec("OdeRender", EngineNode)
+    def spec(
+        spec,
+        name: str,
+        rate: float,
+        process: Optional[int] = process.BRIDGE,
+        color: Optional[str] = "cyan",
+        shape=[480, 480],
+        render_fn=None,
+    ):
+        """OdeRender spec"""
+        # Performs all the steps to fill-in the params with registered info about all functions.
+        spec.initialize(OdeRender)
+
+        # Modify default node params
+        spec.config.name = name
+        spec.config.rate = rate
+        spec.config.process = process
+        spec.config.color = color
+        spec.config.inputs = ["tick", "observation", "action_applied"]
+        spec.config.outputs = ["image"]
+
+        # Modify custom node params
+        spec.config.shape = shape
+        spec.config.render_fn = render_fn
+
+        # Set component parameter
+        spec.inputs.observation.window = 1
+        spec.inputs.action_applied.window = 1
+
+    def initialize(self, shape, render_fn):
+        self.cv_bridge = cv_bridge.CvBridge()
+        self.shape = tuple(shape)
+        self.render_toggle = False
+        self.render_toggle_pub = rospy.Subscriber("%s/env/render/toggle" % self.ns, Bool, self._set_render_toggle)
+        self.render_fn = (lambda img, obs, act: img) if render_fn is None else get_attribute_from_module(render_fn)
+
+    @register.states()
+    def reset(self):
+        # This sensor is stateless (in contrast to e.g. a PID controller).
+        pass
+
+    @register.inputs(tick=UInt64, observation=Float32MultiArray, action_applied=Float32MultiArray)
+    @register.outputs(image=Image)
+    def callback(
+        self, t_n: float, tick: Msg = None, observation: Float32MultiArray = None, action_applied: Float32MultiArray = None
+    ):
+        if self.render_toggle:
+            observation = np.array(observation.msgs[-1].data)
+            action = np.array(action_applied.msgs[-1].data)
+            img = np.zeros((self.shape[0], self.shape[1], 3), np.uint8)
+            img = self.render_fn(img, observation, action)
+            try:
+                msg = self.cv_bridge.cv2_to_imgmsg(img, "bgr8")
+            except ImportError as e:
+                rospy.logwarn_once("[%s] %s. Using numpy instead." % (self.ns_name, e))
+                data = img.tobytes("C")
+                msg = Image(data=data, height=self.shape[1], width=self.shape[0], encoding="bgr8")
+        else:
+            msg = Image()
+        return dict(image=msg)
+
+    def _set_render_toggle(self, msg):
+        if msg.data:
+            rospy.loginfo("[%s] START RENDERING!" % self.name)
+        else:
+            rospy.loginfo("[%s] STOPPED RENDERING!" % self.name)
+        self.render_toggle = msg.data
