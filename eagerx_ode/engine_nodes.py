@@ -209,10 +209,8 @@ class OdeRender(EngineNode):
         self, t_n: float, tick: Msg = None, observation: Float32MultiArray = None, action_applied: Float32MultiArray = None
     ):
         if self.render_toggle:
-            observation = np.array(observation.msgs[-1].data)
-            action = np.array(action_applied.msgs[-1].data)
             img = np.zeros((self.shape[0], self.shape[1], 3), np.uint8)
-            img = self.render_fn(img, observation, action)
+            img = self.render_fn(img, observation, action_applied)
             try:
                 msg = self.cv_bridge.cv2_to_imgmsg(img, "bgr8")
             except ImportError as e:
