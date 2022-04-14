@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.6 (2022-04-14)
+### Fix
+* Add OdeRender EngineNode ([`f383d37`](https://github.com/eager-dev/eagerx_ode/commit/f383d372f45103f523c8d721a87ced8dd11594bf))
+
 ## v0.1.5 (2022-04-08)
 ### Fix
 * Bump eagerx version to 0.1.14 ([`304a662`](https://github.com/eager-dev/eagerx_ode/commit/304a6621cdc89295d3e9633e050094b73ac9ffd9))
