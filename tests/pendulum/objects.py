@@ -136,7 +136,7 @@ class Pendulum(Object):
         graph.add([obs, image, action])
         graph.connect(source=obs.outputs.observation, sensor="pendulum_output")
         graph.connect(actuator="pendulum_input", target=action.inputs.action)
-        graph.connect(source=action.outputs.action_applied, target=image.inputs.action_applied)
+        graph.connect(source=action.outputs.action_applied, target=image.inputs.action_applied, skip=True)
         graph.connect(source=obs.outputs.observation, target=image.inputs.observation)
         graph.connect(source=image.outputs.image, sensor="image")
 
