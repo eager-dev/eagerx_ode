@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.8 (2022-04-20)
+### Fix
+* Use environment process per default ([`3283464`](https://github.com/eager-dev/eagerx_ode/commit/3283464756b315de7ef3875050b5a3e56630183c))
+
 ## v0.1.7 (2022-04-14)
 ### Fix
 * All messages of observation and action_applied now inputs to render_fn ([`c279562`](https://github.com/eager-dev/eagerx_ode/commit/c279562d9bb75def98ef4709dd76a91a59e8fbaf))
