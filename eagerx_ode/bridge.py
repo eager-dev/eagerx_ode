@@ -21,7 +21,7 @@ class OdeBridge(Bridge):
     def spec(
         spec: BridgeSpec,
         rate,
-        process: Optional[int] = process.NEW_PROCESS,
+        process: Optional[int] = process.ENVIRONMENT,
         is_reactive: Optional[bool] = True,
         real_time_factor: Optional[float] = 0,
         simulate_delays: Optional[bool] = True,
