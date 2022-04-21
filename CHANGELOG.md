@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.9 (2022-04-21)
+### Fix
+* Dfun odeint ([`ec3edf9`](https://github.com/eager-dev/eagerx_ode/commit/ec3edf9d59943e4b8badf3a9918d2e010f29bb3a))
+
 ## v0.1.8 (2022-04-20)
 ### Fix
 * Use environment process per default ([`3283464`](https://github.com/eager-dev/eagerx_ode/commit/3283464756b315de7ef3875050b5a3e56630183c))
