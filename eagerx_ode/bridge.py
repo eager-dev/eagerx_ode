@@ -78,7 +78,7 @@ class OdeBridge(Bridge):
         # Extract relevant agnostic params
         obj_name = config["name"]
         ode = get_attribute_from_module(bridge_config["ode"])
-        Dfun = get_attribute_from_module(bridge_config["Dfun"]) if "Dfun" in config else None
+        Dfun = get_attribute_from_module(bridge_config["Dfun"]) if "Dfun" in config and config["Dfun"] else None
 
         # Create new env, and add to simulator
         self.simulator[obj_name] = dict(

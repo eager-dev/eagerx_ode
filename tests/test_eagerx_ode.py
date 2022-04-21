@@ -10,7 +10,7 @@ from eagerx.wrappers import Flatten
 import eagerx.nodes  # Registers butterworth_filter # noqa # pylint: disable=unused-import
 import eagerx_ode  # Registers OdeBridge # noqa # pylint: disable=unused-import
 
-import tests.pendulum.objects # Registers pendulum # noqa # pylint: disable=unused-import
+import tests.pendulum.objects  # Registers pendulum # noqa # pylint: disable=unused-import
 
 # Other
 import numpy as np
@@ -20,11 +20,23 @@ import pytest
 NP = process.NEW_PROCESS
 ENV = process.ENVIRONMENT
 
+
 @pytest.mark.parametrize(
     "eps, steps, is_reactive, rtf, p",
     [(3, 3, True, 0, ENV)],
 )
 def test_ode_bridge(eps, steps, is_reactive, rtf, p):
+    """
+    Creates an environment with the dummy Pendulum and OdeBridge.
+
+    :param eps: Number of episodes
+    :param steps: Number of steps per episode
+    :param is_reactive: If True, the environment is reactive
+    :param rtf: Real-time factor
+    :param p: Process
+    :return:
+    """
+
     # Start roscore
     roscore = initialize("eagerx_core", anonymous=True, log_level=log.WARN)
 
@@ -33,26 +45,36 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     bridge_p = p
     rate = 30
 
-    # Initialize empty graph
+    # Initialize empty graphs
     graph = Graph.create()
+    graph2 = Graph.create()
 
     # Create pendulum
     pendulum = Object.make(
         "Eagerx_Ode_Pendulum",
         "pendulum",
-        sensors=["pendulum_output", "action_applied", "image"],
         states=["model_state", "model_parameters"],
     )
     graph.add(pendulum)
 
     # Connect the nodes
     graph.connect(action="action", target=pendulum.actuators.pendulum_input)
-    graph.connect(source=pendulum.sensors.pendulum_output, observation="observation", window=1)
-    graph.connect(source=pendulum.sensors.action_applied, observation="action_applied", window=1)
+    graph.connect(
+        source=pendulum.sensors.pendulum_output, observation="observation", window=1
+    )
+    graph.connect(
+        source=pendulum.sensors.action_applied, observation="action_applied", window=1
+    )
     graph.render(pendulum.sensors.image, rate=10)
 
     # Define bridges
-    bridge = Bridge.make("OdeBridge", rate=rate, is_reactive=is_reactive, real_time_factor=rtf, process=bridge_p)
+    bridge = Bridge.make(
+        "OdeBridge",
+        rate=rate,
+        is_reactive=is_reactive,
+        real_time_factor=rtf,
+        process=bridge_p,
+    )
 
     # Define step function
     def step_fn(prev_obs, obs, action, steps):
@@ -64,7 +86,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
         else:
             sin_th, cos_th, thdot = 0, -1, 0
         th = np.arctan2(sin_th, cos_th)
-        cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
+        cost = th**2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
         # Determine done flag
         done = steps > 500
         # Set info:
@@ -72,7 +94,9 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
         return obs, -cost, done, info
 
     # Initialize Environment
-    env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn))
+    env = Flatten(
+        EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn)
+    )
     # env.render("human")
 
     # First reset
@@ -81,7 +105,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     for j in range(eps):
         print("\n[Episode %s]" % j)
         for i in range(steps):
-            env.step(action)
+            obs, _, _, _ = env.step(action)
         env.reset()
     print("\n[Finished]")
     env.shutdown()
@@ -89,3 +113,139 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
         roscore.shutdown()
     print("\n[Shutdown]")
 
+
+@pytest.mark.parametrize(
+    "eps, steps, is_reactive, rtf, p",
+    [(3, 30, True, 0, ENV)],
+)
+def test_dfun(eps, steps, is_reactive, rtf, p):
+    """
+    Creates two environments, one uses a Jacobian function (Dfun) and the other not.
+    Tests if the observations of the environments are close to eachother within a tolerance.
+
+    :param eps: Number of episodes
+    :param steps: Number of steps per episode
+    :param is_reactive: If True, the environment is reactive
+    :param rtf: Real-time factor
+    :param p: Process
+    :return:
+    """
+
+    # Start roscore
+    roscore = initialize("eagerx_core", anonymous=True, log_level=log.WARN)
+
+    # Define unique name for test environment
+    name = f"{eps}_{steps}_{is_reactive}_{p}"
+    bridge_p = p
+    rate = 30
+
+    # Initialize empty graphs
+    graph = Graph.create()
+    graph2 = Graph.create()
+
+    # Create pendulum
+    pendulum = Object.make(
+        "Eagerx_Ode_Pendulum",
+        "pendulum",
+    )
+    graph.add(pendulum)
+
+    pendulum2 = Object.make("Eagerx_Ode_Pendulum", "pendulum2", Dfun=None)
+    graph2.add(pendulum2)
+
+    # Connect the nodes
+    graph.connect(action="action", target=pendulum.actuators.pendulum_input)
+    graph.connect(
+        source=pendulum.sensors.pendulum_output, observation="observation", window=1
+    )
+    graph.connect(
+        source=pendulum.sensors.action_applied, observation="action_applied", window=1
+    )
+    graph.render(pendulum.sensors.image, rate=10)
+
+    graph2.connect(action="action", target=pendulum2.actuators.pendulum_input)
+    graph2.connect(
+        source=pendulum2.sensors.pendulum_output, observation="observation", window=1
+    )
+    graph2.connect(
+        source=pendulum2.sensors.action_applied, observation="action_applied", window=1
+    )
+    graph2.render(pendulum2.sensors.image, rate=10)
+
+    # Define bridges
+    bridge = Bridge.make(
+        "OdeBridge",
+        rate=rate,
+        is_reactive=is_reactive,
+        real_time_factor=rtf,
+        process=bridge_p,
+    )
+
+    # Define step function
+    def step_fn(prev_obs, obs, action, steps):
+        # Calculate reward
+        if len(obs["observation"][0]) == 2:
+            th, thdot = obs["observation"][0]
+            sin_th = np.sin(th)
+            cos_th = np.cos(th)
+        else:
+            sin_th, cos_th, thdot = 0, -1, 0
+        th = np.arctan2(sin_th, cos_th)
+        cost = th**2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
+        # Determine done flag
+        done = steps > 500
+        # Set info:
+        info = dict()
+        return obs, -cost, done, info
+
+    # Define reset function
+    def reset_fn(env):
+        state_dict = env.state_space.sample()
+        for key, value in state_dict.items():
+            if "model_state" in key:
+                state_dict[key] = value * 0.0
+        return state_dict
+
+    # Initialize Environment
+    env = Flatten(
+        EagerxEnv(
+            name=name,
+            rate=rate,
+            graph=graph,
+            bridge=bridge,
+            step_fn=step_fn,
+            reset_fn=reset_fn,
+        )
+    )
+    env2 = Flatten(
+        EagerxEnv(
+            name=name + "2",
+            rate=rate,
+            graph=graph2,
+            bridge=bridge,
+            step_fn=step_fn,
+            reset_fn=reset_fn,
+        )
+    )
+    # env.render("human")
+
+    # First reset
+    env.reset()
+    env2.reset()
+    action = env.action_space.sample()
+    for j in range(eps):
+        print("\n[Episode %s]" % j)
+        for i in range(steps):
+            obs, _, _, _ = env.step(action)
+            obs2, _, _, _ = env2.step(action)
+
+            # Assert if result is the same with and without Jacobian
+            assert np.allclose(obs, obs2)
+        env.reset()
+        env2.reset()
+    print("\n[Finished]")
+    env.shutdown()
+    env2.shutdown()
+    if roscore:
+        roscore.shutdown()
+    print("\n[Shutdown]")
