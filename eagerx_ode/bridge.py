@@ -70,7 +70,7 @@ class OdeBridge(Bridge):
         self.odeint_args = dict(rtol=rtol, atol=atol, hmax=hmax, hmin=hmin, mxstep=mxstep)
         self.simulator = dict()
 
-    @register.bridge_config(ode=None, ode_params=list())
+    @register.bridge_config(ode=None, Dfun=None, ode_params=list())
     def add_object(self, config, bridge_config, node_params, state_params):
         # add object to simulator (we have a ref to the simulator with self.simulator)
         rospy.loginfo(f'Adding object "{config["name"]}" of type "{config["entity_id"]}" to the simulator.')

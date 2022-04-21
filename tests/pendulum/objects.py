@@ -105,6 +105,7 @@ class Pendulum(Object):
             0.0502769,
             9.83536,
         ]
+        spec.OdeBridge.Dfun = "tests.pendulum.pendulum_ode/pendulum_dfun"
 
         # Create engine states (no agnostic states defined in this case)
         spec.OdeBridge.states.model_state = EngineState.make("OdeEngineState")
