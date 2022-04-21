@@ -70,7 +70,7 @@ class OdeBridge(Bridge):
         self.odeint_args = dict(rtol=rtol, atol=atol, hmax=hmax, hmin=hmin, mxstep=mxstep)
         self.simulator = dict()
 
-    @register.bridge_config(ode=None, ode_params=list())
+    @register.bridge_config(ode=None, Dfun=None, ode_params=list())
     def add_object(self, config, bridge_config, node_params, state_params):
         # add object to simulator (we have a ref to the simulator with self.simulator)
         rospy.loginfo(f'Adding object "{config["name"]}" of type "{config["entity_id"]}" to the simulator.')
@@ -78,7 +78,7 @@ class OdeBridge(Bridge):
         # Extract relevant agnostic params
         obj_name = config["name"]
         ode = get_attribute_from_module(bridge_config["ode"])
-        Dfun = get_attribute_from_module(bridge_config["Dfun"]) if "Dfun" in config else None
+        Dfun = get_attribute_from_module(bridge_config["Dfun"]) if "Dfun" in config and config["Dfun"] else None
 
         # Create new env, and add to simulator
         self.simulator[obj_name] = dict(
