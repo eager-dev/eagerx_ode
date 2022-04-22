@@ -4,7 +4,7 @@ import numpy as np
 # IMPORT ROS
 import rospy
 import cv_bridge
-from std_msgs.msg import UInt64, Float32MultiArray, Bool
+from std_msgs.msg import UInt64, Float32MultiArray, Bool, Float32
 from sensor_msgs.msg import Image
 
 
@@ -227,3 +227,56 @@ class OdeRender(EngineNode):
         else:
             rospy.loginfo("[%s] STOPPED RENDERING!" % self.name)
         self.render_toggle = msg.data
+
+
+class OdeFloatOutput(EngineNode):
+    """
+    EngineNode that can be used to create sensor that outputs the value at specified index of an incoming array.
+    """
+
+    @staticmethod
+    @register.spec("OdeFloatOutput", EngineNode)
+    def spec(
+        spec,
+        name: str,
+        rate: float,
+        idx: int = 0,
+        process: Optional[int] = process.BRIDGE,
+        color: Optional[str] = "cyan",
+    ):
+        """OdeFloatOutput spec
+        :param idx: index of the array that will be sent through
+        """
+        # Performs all the steps to fill-in the params with registered info about all functions.
+        spec.initialize(OdeFloatOutput)
+
+        # Modify default node params
+        spec.config.name = name
+        spec.config.rate = rate
+        spec.config.process = process
+        spec.config.inputs = ["tick"]
+        spec.config.outputs = ["observation"]
+
+        # Set custom node params
+        spec.config.idx = idx
+
+    def initialize(self, idx):
+        # We will probably use self.simulator[self.obj_name] in callback & reset.
+        assert (
+            self.process == process.BRIDGE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+        self.obj_name = self.config["name"]
+        self.idx = idx
+
+    @register.states()
+    def reset(self):
+        pass
+
+    @register.inputs(tick=UInt64)
+    @register.outputs(observation=Float32)
+    def callback(self, t_n: float, tick: Optional[Msg] = None):
+        assert isinstance(self.simulator[self.obj_name], dict), (
+            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
+        )
+        data = self.simulator[self.obj_name]["state"]
+        return dict(observation=Float32(data[self.idx]))
