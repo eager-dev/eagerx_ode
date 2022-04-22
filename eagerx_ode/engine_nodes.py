@@ -233,6 +233,7 @@ class OdeFloatOutput(EngineNode):
     """
     EngineNode that can be used to create sensor that outputs the value at specified index of an incoming array.
     """
+
     @staticmethod
     @register.spec("OdeFloatOutput", EngineNode)
     def spec(
