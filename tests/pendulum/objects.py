@@ -1,5 +1,5 @@
 # ROS IMPORTS
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32MultiArray, Float32
 from sensor_msgs.msg import Image
 
 # EAGERx IMPORTS
@@ -20,15 +20,11 @@ class Pendulum(Object):
 
     @staticmethod
     @register.sensors(
-        pendulum_output=Float32MultiArray, action_applied=Float32MultiArray, image=Image
+        pendulum_output=Float32MultiArray, action_applied=Float32MultiArray, image=Image, theta=Float32, dtheta=Float32
     )
     @register.actuators(pendulum_input=Float32MultiArray)
-    @register.engine_states(
-        model_state=Float32MultiArray, model_parameters=Float32MultiArray
-    )
-    @register.config(
-        render_shape=[480, 480], Dfun="tests.pendulum.pendulum_ode/pendulum_dfun"
-    )
+    @register.engine_states(model_state=Float32MultiArray, model_parameters=Float32MultiArray)
+    @register.config(render_shape=[480, 480], Dfun="tests.pendulum.pendulum_ode/pendulum_dfun")
     def agnostic(spec: ObjectSpec, rate):
         """Agnostic definition of the pendulum"""
         # Register standard converters, space_converters, and processors
@@ -53,6 +49,12 @@ class Pendulum(Object):
             shape=spec.config.render_shape,
             dtype="float32",
         )
+
+        spec.sensors.theta.rate = rate
+        spec.sensors.theta.space_converter = SpaceConverter.make("Space_Float32", low=-9999.0, high=9999.0, dtype="float32")
+
+        spec.sensors.dtheta.rate = rate
+        spec.sensors.dtheta.space_converter = SpaceConverter.make("Space_Float32", low=-9999.0, high=9999.0, dtype="float32")
 
         # Set actuator properties: (space_converters, rate, etc...)
         spec.actuators.pendulum_input.rate = rate
@@ -95,9 +97,7 @@ class Pendulum(Object):
         # Modify default agnostic params
         # Only allow changes to the agnostic params (rates, windows, (space)converters, etc...
         spec.config.name = name
-        spec.config.sensors = (
-            sensors if sensors else ["pendulum_output", "action_applied", "image"]
-        )
+        spec.config.sensors = sensors if sensors else ["pendulum_output", "action_applied", "image", "theta", "dtheta"]
         spec.config.actuators = ["pendulum_input"]
         spec.config.states = states if states else ["model_state"]
 
@@ -110,9 +110,7 @@ class Pendulum(Object):
         Pendulum.agnostic(spec, rate)
 
     @staticmethod
-    @register.bridge(
-        entity_id, OdeBridge
-    )  # This decorator pre-initializes bridge implementation with default object_params
+    @register.bridge(entity_id, OdeBridge)  # This decorator pre-initializes bridge implementation with default object_params
     def ode_bridge(spec: ObjectSpec, graph: EngineGraph):
         """Engine-specific implementation (OdeBridge) of the object."""
         # Import any object specific entities for this bridge
@@ -132,9 +130,7 @@ class Pendulum(Object):
 
         # Create engine states (no agnostic states defined in this case)
         spec.OdeBridge.states.model_state = EngineState.make("OdeEngineState")
-        spec.OdeBridge.states.model_parameters = EngineState.make(
-            "OdeParameters", list(range(5))
-        )
+        spec.OdeBridge.states.model_parameters = EngineState.make("OdeParameters", list(range(5)))
 
         # Create sensor engine nodes
         obs = EngineNode.make(
@@ -151,6 +147,9 @@ class Pendulum(Object):
             rate=spec.sensors.image.rate,
             process=0,
         )
+        theta = EngineNode.make("OdeFloatOutput", "theta", rate=spec.sensors.theta.rate, process=2, idx=0)
+
+        dtheta = EngineNode.make("OdeFloatOutput", "dtheta", rate=spec.sensors.dtheta.rate, process=2, idx=1)
 
         # Create actuator engine nodes
         action = EngineNode.make(
@@ -162,7 +161,7 @@ class Pendulum(Object):
         )
 
         # Connect all engine nodes
-        graph.add([obs, image, action])
+        graph.add([obs, image, action, theta, dtheta])
         graph.connect(source=obs.outputs.observation, sensor="pendulum_output")
         graph.connect(actuator="pendulum_input", target=action.inputs.action)
         graph.connect(
@@ -174,9 +173,7 @@ class Pendulum(Object):
         graph.connect(source=image.outputs.image, sensor="image")
 
         # Add action applied
-        applied = EngineNode.make(
-            "ActionApplied", "applied", rate=spec.sensors.action_applied.rate, process=2
-        )
+        applied = EngineNode.make("ActionApplied", "applied", rate=spec.sensors.action_applied.rate, process=2)
         graph.add(applied)
         graph.connect(
             source=action.outputs.action_applied,
@@ -184,3 +181,5 @@ class Pendulum(Object):
             skip=True,
         )
         graph.connect(source=applied.outputs.action_applied, sensor="action_applied")
+        graph.connect(source=theta.outputs.observation, sensor="theta")
+        graph.connect(source=dtheta.outputs.observation, sensor="dtheta")

@@ -59,12 +59,11 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
 
     # Connect the nodes
     graph.connect(action="action", target=pendulum.actuators.pendulum_input)
-    graph.connect(
-        source=pendulum.sensors.pendulum_output, observation="observation", window=1
-    )
-    graph.connect(
-        source=pendulum.sensors.action_applied, observation="action_applied", window=1
-    )
+    graph.connect(source=pendulum.sensors.pendulum_output, observation="observation", window=1)
+    graph.connect(source=pendulum.sensors.action_applied, observation="action_applied", window=1)
+    graph.connect(source=pendulum.sensors.theta, observation="theta", window=1)
+    graph.connect(source=pendulum.sensors.dtheta, observation="dtheta", window=1)
+
     graph.render(pendulum.sensors.image, rate=10)
 
     # Define bridges
@@ -94,9 +93,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
         return obs, -cost, done, info
 
     # Initialize Environment
-    env = Flatten(
-        EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn)
-    )
+    env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn))
     # env.render("human")
 
     # First reset
@@ -155,21 +152,13 @@ def test_dfun(eps, steps, is_reactive, rtf, p):
 
     # Connect the nodes
     graph.connect(action="action", target=pendulum.actuators.pendulum_input)
-    graph.connect(
-        source=pendulum.sensors.pendulum_output, observation="observation", window=1
-    )
-    graph.connect(
-        source=pendulum.sensors.action_applied, observation="action_applied", window=1
-    )
+    graph.connect(source=pendulum.sensors.pendulum_output, observation="observation", window=1)
+    graph.connect(source=pendulum.sensors.action_applied, observation="action_applied", window=1)
     graph.render(pendulum.sensors.image, rate=10)
 
     graph2.connect(action="action", target=pendulum2.actuators.pendulum_input)
-    graph2.connect(
-        source=pendulum2.sensors.pendulum_output, observation="observation", window=1
-    )
-    graph2.connect(
-        source=pendulum2.sensors.action_applied, observation="action_applied", window=1
-    )
+    graph2.connect(source=pendulum2.sensors.pendulum_output, observation="observation", window=1)
+    graph2.connect(source=pendulum2.sensors.action_applied, observation="action_applied", window=1)
     graph2.render(pendulum2.sensors.image, rate=10)
 
     # Define bridges
