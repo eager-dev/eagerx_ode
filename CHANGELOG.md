@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.10 (2022-04-22)
+### Fix
+* Add engine node for float32 observations ([`e9127cc`](https://github.com/eager-dev/eagerx_ode/commit/e9127cce4657a3c55b0712e584ddd471e902fac9))
+
 ## v0.1.9 (2022-04-21)
 ### Fix
 * Dfun odeint ([`ec3edf9`](https://github.com/eager-dev/eagerx_ode/commit/ec3edf9d59943e4b8badf3a9918d2e010f29bb3a))
