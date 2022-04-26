@@ -22,16 +22,16 @@ ENV = process.ENVIRONMENT
 
 
 @pytest.mark.parametrize(
-    "eps, steps, is_reactive, rtf, p",
+    "eps, steps, sync, rtf, p",
     [(3, 3, True, 0, ENV)],
 )
-def test_ode_bridge(eps, steps, is_reactive, rtf, p):
+def test_ode_bridge(eps, steps, sync, rtf, p):
     """
     Creates an environment with the dummy Pendulum and OdeBridge.
 
     :param eps: Number of episodes
     :param steps: Number of steps per episode
-    :param is_reactive: If True, the environment is reactive
+    :param sync: If True, the environment is reactive
     :param rtf: Real-time factor
     :param p: Process
     :return:
@@ -41,7 +41,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     roscore = initialize("eagerx_core", anonymous=True, log_level=log.WARN)
 
     # Define unique name for test environment
-    name = f"{eps}_{steps}_{is_reactive}_{p}"
+    name = f"{eps}_{steps}_{sync}_{p}"
     bridge_p = p
     rate = 30
 
@@ -70,7 +70,7 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
     bridge = Bridge.make(
         "OdeBridge",
         rate=rate,
-        is_reactive=is_reactive,
+        sync=sync,
         real_time_factor=rtf,
         process=bridge_p,
     )
@@ -112,17 +112,17 @@ def test_ode_bridge(eps, steps, is_reactive, rtf, p):
 
 
 @pytest.mark.parametrize(
-    "eps, steps, is_reactive, rtf, p",
+    "eps, steps, sync, rtf, p",
     [(3, 30, True, 0, ENV)],
 )
-def test_dfun(eps, steps, is_reactive, rtf, p):
+def test_dfun(eps, steps, sync, rtf, p):
     """
     Creates two environments, one uses a Jacobian function (Dfun) and the other not.
     Tests if the observations of the environments are close to eachother within a tolerance.
 
     :param eps: Number of episodes
     :param steps: Number of steps per episode
-    :param is_reactive: If True, the environment is reactive
+    :param sync: If True, the environment is reactive
     :param rtf: Real-time factor
     :param p: Process
     :return:
@@ -132,7 +132,7 @@ def test_dfun(eps, steps, is_reactive, rtf, p):
     roscore = initialize("eagerx_core", anonymous=True, log_level=log.WARN)
 
     # Define unique name for test environment
-    name = f"{eps}_{steps}_{is_reactive}_{p}"
+    name = f"{eps}_{steps}_{sync}_{p}"
     bridge_p = p
     rate = 30
 
@@ -165,7 +165,7 @@ def test_dfun(eps, steps, is_reactive, rtf, p):
     bridge = Bridge.make(
         "OdeBridge",
         rate=rate,
-        is_reactive=is_reactive,
+        sync=sync,
         real_time_factor=rtf,
         process=bridge_p,
     )

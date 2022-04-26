@@ -21,8 +21,8 @@ class OdeBridge(Bridge):
     def spec(
         spec: BridgeSpec,
         rate,
+        sync: Optional[bool] = True,
         process: Optional[int] = process.ENVIRONMENT,
-        is_reactive: Optional[bool] = True,
         real_time_factor: Optional[float] = 0,
         simulate_delays: Optional[bool] = True,
         log_level: Optional[int] = ERROR,
@@ -38,7 +38,7 @@ class OdeBridge(Bridge):
         :param spec: Not provided by the user.
         :param rate: Rate of the bridge
         :param process: {0: NEW_PROCESS, 1: ENVIRONMENT, 2: BRIDGE, 3: EXTERNAL}
-        :param is_reactive: Run reactive or async
+        :param sync: Run reactive or async
         :param real_time_factor: simulation speed. 0 == "as fast as possible".
         :param simulate_delays: Boolean flag to simulate delays.
         :param log_level: {0: SILENT, 10: DEBUG, 20: INFO, 30: WARN, 40: ERROR, 50: FATAL}
@@ -55,7 +55,7 @@ class OdeBridge(Bridge):
         # Modify default bridge params
         spec.config.rate = rate
         spec.config.process = process
-        spec.config.is_reactive = is_reactive
+        spec.config.sync = sync
         spec.config.real_time_factor = real_time_factor
         spec.config.simulate_delays = simulate_delays
         spec.config.log_level = log_level
