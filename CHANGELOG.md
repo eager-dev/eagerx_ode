@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.11 (2022-04-26)
+### Fix
+* Bump flake8, eagerx, pytest ([`1ffd80f`](https://github.com/eager-dev/eagerx_ode/commit/1ffd80f9e98028d68efb1b8f194c82a6f9acd5d5))
+* Refactor `is_reactive` to `sync` ([`095741e`](https://github.com/eager-dev/eagerx_ode/commit/095741e7b6fb004a5f044cc1353114b031909716))
+
 ## v0.1.10 (2022-04-22)
 ### Fix
 * Add engine node for float32 observations ([`e9127cc`](https://github.com/eager-dev/eagerx_ode/commit/e9127cce4657a3c55b0712e584ddd471e902fac9))
