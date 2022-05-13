@@ -26,9 +26,6 @@ class OdeOutput(EngineNode):
         color: Optional[str] = "cyan",
     ):
         """OdeOutput spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeOutput)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -68,9 +65,6 @@ class ActionApplied(EngineNode):
         color: Optional[str] = "cyan",
     ):
         """ActionApplied spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(ActionApplied)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -115,9 +109,6 @@ class OdeInput(EngineNode):
         color: Optional[str] = "green",
     ):
         """OdeInput spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeInput)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -172,9 +163,6 @@ class OdeRender(EngineNode):
         render_fn=None,
     ):
         """OdeRender spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeRender)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -247,9 +235,6 @@ class OdeFloatOutput(EngineNode):
         """OdeFloatOutput spec
         :param idx: index of the array that will be sent through
         """
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeFloatOutput)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate

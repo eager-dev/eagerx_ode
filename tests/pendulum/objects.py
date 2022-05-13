@@ -91,9 +91,6 @@ class Pendulum(Object):
         Dfun="tests.pendulum.pendulum_ode/pendulum_dfun",
     ):
         """Object spec of pendulum"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        Pendulum.initialize_spec(spec)
-
         # Modify default agnostic params
         # Only allow changes to the agnostic params (rates, windows, (space)converters, etc...
         spec.config.name = name

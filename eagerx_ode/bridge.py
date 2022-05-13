@@ -49,9 +49,6 @@ class OdeBridge(Bridge):
         :param mxstep: Maximum number of (internally defined) steps allowed for each integration point in t.
         :return: BridgeSpec
         """
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeBridge)
-
         # Modify default bridge params
         spec.config.rate = rate
         spec.config.process = process

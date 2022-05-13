@@ -7,7 +7,7 @@ class OdeEngineState(EngineState):
     @staticmethod
     @register.spec("OdeEngineState", EngineState)
     def spec(spec):
-        spec.initialize(OdeEngineState)
+        pass
 
     def initialize(self):
         self.obj_name = self.config["name"]
@@ -20,7 +20,6 @@ class OdeParameters(EngineState):
     @staticmethod
     @register.spec("OdeParameters", EngineState)
     def spec(spec, indices):
-        spec.initialize(OdeParameters)
         spec.config.indices = indices
 
     def initialize(self, indices):
