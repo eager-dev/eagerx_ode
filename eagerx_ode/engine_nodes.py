@@ -22,7 +22,7 @@ class OdeOutput(EngineNode):
         spec,
         name: str,
         rate: float,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
     ):
         """OdeOutput spec"""
@@ -36,8 +36,8 @@ class OdeOutput(EngineNode):
     def initialize(self):
         # We will probably use self.simulator[self.obj_name] in callback & reset.
         assert (
-            self.process == process.BRIDGE
-        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+            self.process == process.ENGINE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
         self.obj_name = self.config["name"]
 
     @register.states()
@@ -61,7 +61,7 @@ class ActionApplied(EngineNode):
         spec,
         name: str,
         rate: float,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
     ):
         """ActionApplied spec"""
@@ -75,7 +75,7 @@ class ActionApplied(EngineNode):
     def initialize(self):
         pass
         # We will probably use self.simulator[self.obj_name] in callback & reset.
-        # assert self.process == process.BRIDGE, 'Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process'
+        # assert self.process == process.ENGINE, 'Simulation node requires a reference to the simulator, hence it must be launched in the Engine process'
         # self.obj_name = self.config['name']
 
     @register.states()
@@ -105,7 +105,7 @@ class OdeInput(EngineNode):
         name: str,
         rate: float,
         default_action: List,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "green",
     ):
         """OdeInput spec"""
@@ -122,8 +122,8 @@ class OdeInput(EngineNode):
     def initialize(self, default_action):
         # We will probably use self.simulator[self.obj_name] in callback & reset.
         assert (
-            self.process == process.BRIDGE
-        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+            self.process == process.ENGINE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
         self.obj_name = self.config["name"]
         self.default_action = np.array(default_action)
 
@@ -157,7 +157,7 @@ class OdeRender(EngineNode):
         spec,
         name: str,
         rate: float,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
         shape=[480, 480],
         render_fn=None,
@@ -229,7 +229,7 @@ class OdeFloatOutput(EngineNode):
         name: str,
         rate: float,
         idx: int = 0,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
     ):
         """OdeFloatOutput spec
@@ -248,8 +248,8 @@ class OdeFloatOutput(EngineNode):
     def initialize(self, idx):
         # We will probably use self.simulator[self.obj_name] in callback & reset.
         assert (
-            self.process == process.BRIDGE
-        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+            self.process == process.ENGINE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
         self.obj_name = self.config["name"]
         self.idx = idx
 

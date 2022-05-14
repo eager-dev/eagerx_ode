@@ -19,7 +19,7 @@ eagerx_ode package
 
 What is the *eagerx_ode* package?
 =================================
-This repository/package contains the *OdeBridge* for simulating robots based on ordinary differential equations (ODEs) in EAGERx.
+This repository/package contains the *OdeEngine* for simulating robots based on ordinary differential equations (ODEs) in EAGERx.
 EAGERx (Engine Agnostic Gym Environments for Robotics) enables users to easily define new tasks, switch from one sensor to another, and switch from simulation to reality with a single line of code by being invariant to the physics engine.
 
 `The core repository is available here <https://github.com/eager-dev/eagerx>`_.

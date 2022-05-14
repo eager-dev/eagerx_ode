@@ -10,16 +10,16 @@ from genpy.message import Message
 # RX IMPORTS
 from eagerx.core.constants import process, ERROR
 import eagerx.core.register as register
-from eagerx.core.entities import Bridge
-from eagerx.core.specs import BridgeSpec
+from eagerx.core.entities import Engine
+from eagerx.core.specs import EngineSpec
 from eagerx.utils.utils import Msg, get_attribute_from_module
 
 
-class OdeBridge(Bridge):
+class OdeEngine(Engine):
     @staticmethod
-    @register.spec("OdeBridge", Bridge)
+    @register.spec("OdeEngine", Engine)
     def spec(
-        spec: BridgeSpec,
+        spec: EngineSpec,
         rate,
         sync: Optional[bool] = True,
         process: Optional[int] = process.ENVIRONMENT,
@@ -33,11 +33,11 @@ class OdeBridge(Bridge):
         mxstep: int = 0,
     ):
         """
-        Spec of the OdeBridge
+        Spec of the OdeEngine
 
         :param spec: Not provided by the user.
-        :param rate: Rate of the bridge
-        :param process: {0: NEW_PROCESS, 1: ENVIRONMENT, 2: BRIDGE, 3: EXTERNAL}
+        :param rate: Rate of the engine
+        :param process: {0: NEW_PROCESS, 1: ENVIRONMENT, 2: ENGINE, 3: EXTERNAL}
         :param sync: Run reactive or async
         :param real_time_factor: simulation speed. 0 == "as fast as possible".
         :param simulate_delays: Boolean flag to simulate delays.
@@ -47,9 +47,9 @@ class OdeBridge(Bridge):
         :param hmax: The maximum absolute step size allowed.
         :param hmin: The minimum absolute step size allowed.
         :param mxstep: Maximum number of (internally defined) steps allowed for each integration point in t.
-        :return: BridgeSpec
+        :return: EngineSpec
         """
-        # Modify default bridge params
+        # Modify default engine params
         spec.config.rate = rate
         spec.config.process = process
         spec.config.sync = sync
@@ -67,15 +67,15 @@ class OdeBridge(Bridge):
         self.odeint_args = dict(rtol=rtol, atol=atol, hmax=hmax, hmin=hmin, mxstep=mxstep)
         self.simulator = dict()
 
-    @register.bridge_config(ode=None, Dfun=None, ode_params=list())
-    def add_object(self, config, bridge_config, node_params, state_params):
+    @register.engine_config(ode=None, Dfun=None, ode_params=list())
+    def add_object(self, config, engine_config, node_params, state_params):
         # add object to simulator (we have a ref to the simulator with self.simulator)
         rospy.loginfo(f'Adding object "{config["name"]}" of type "{config["entity_id"]}" to the simulator.')
 
         # Extract relevant agnostic params
         obj_name = config["name"]
-        ode = get_attribute_from_module(bridge_config["ode"])
-        Dfun = get_attribute_from_module(bridge_config["Dfun"]) if "Dfun" in config and config["Dfun"] else None
+        ode = get_attribute_from_module(engine_config["ode"])
+        Dfun = get_attribute_from_module(engine_config["Dfun"]) if "Dfun" in config and config["Dfun"] else None
 
         # Create new env, and add to simulator
         self.simulator[obj_name] = dict(
@@ -83,7 +83,7 @@ class OdeBridge(Bridge):
             Dfun=Dfun,
             state=None,
             input=None,
-            ode_params=bridge_config["ode_params"],
+            ode_params=engine_config["ode_params"],
         )
 
     def pre_reset(self, **kwargs: Optional[Msg]):
