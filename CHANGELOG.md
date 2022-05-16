@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.12 (2022-05-16)
+### Fix
+* Update dependencies ([`aebceaf`](https://github.com/eager-dev/eagerx_ode/commit/aebceaf3734a09aba9071f2eebaddf03b9c9eb4d))
+* Refactor bridge to engine ([`5250d06`](https://github.com/eager-dev/eagerx_ode/commit/5250d0693801290d11a8a66ac944a01bcae92a0e))
+* Refactor initialize_spec ([`e44c466`](https://github.com/eager-dev/eagerx_ode/commit/e44c466bace045945c9ab8ad5b400989f1305c06))
+
+### Documentation
+* Update  bibtex typo ([`fd5c2be`](https://github.com/eager-dev/eagerx_ode/commit/fd5c2bee05c4551df615db86db3435d1b3b3b076))
+
 ## v0.1.11 (2022-04-26)
 ### Fix
 * Bump flake8, eagerx, pytest ([`1ffd80f`](https://github.com/eager-dev/eagerx_ode/commit/1ffd80f9e98028d68efb1b8f194c82a6f9acd5d5))
