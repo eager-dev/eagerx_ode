@@ -2,7 +2,7 @@
 name = "eagerx_ode"
 version = "0.1.11"
 license = "Apache2.0"
-description = "Bridge (with corresponding nodes) that uses arbitrary ODEs to simulate objects in EAGERx."
+description = "Engine (with corresponding nodes) that uses arbitrary ODEs to simulate objects in EAGERx."
 authors = ["Jelle Luijkx <j.d.luijkx@tudelft.nl>", "Bas van der Heijden <d.s.vanderheijden@tudelft.nl>"]
 homepage = "https://github.com/eager-dev/eagerx_ode"
 repository = "https://github.com/eager-dev/eagerx_ode"
@@ -10,7 +10,7 @@ documentation = "https://eagerx.readthedocs.io/en/master/"
 
 [tool.poetry.dependencies]
 python = "^3.6.2"
-eagerx = "^0.1.17"
+eagerx = "^0.1.23"
 scipy = "^1.5.4"
 
 [tool.poetry.dev-dependencies]

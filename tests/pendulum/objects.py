@@ -3,7 +3,7 @@ from std_msgs.msg import Float32MultiArray, Float32
 from sensor_msgs.msg import Image
 
 # EAGERx IMPORTS
-from eagerx_ode.bridge import OdeBridge
+from eagerx_ode.engine import OdeEngine
 from eagerx.core.entities import (
     Object,
     EngineNode,
@@ -91,9 +91,6 @@ class Pendulum(Object):
         Dfun="tests.pendulum.pendulum_ode/pendulum_dfun",
     ):
         """Object spec of pendulum"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        Pendulum.initialize_spec(spec)
-
         # Modify default agnostic params
         # Only allow changes to the agnostic params (rates, windows, (space)converters, etc...
         spec.config.name = name
@@ -106,19 +103,19 @@ class Pendulum(Object):
 
         spec.config.Dfun = Dfun
 
-        # Add bridge implementation
+        # Add engine implementation
         Pendulum.agnostic(spec, rate)
 
     @staticmethod
-    @register.bridge(entity_id, OdeBridge)  # This decorator pre-initializes bridge implementation with default object_params
-    def ode_bridge(spec: ObjectSpec, graph: EngineGraph):
-        """Engine-specific implementation (OdeBridge) of the object."""
-        # Import any object specific entities for this bridge
+    @register.engine(entity_id, OdeEngine)  # This decorator pre-initializes engine implementation with default object_params
+    def ode_engine(spec: ObjectSpec, graph: EngineGraph):
+        """Engine-specific implementation (OdeEngine) of the object."""
+        # Import any object specific entities for this engine
 
         # Set object arguments (nothing to set here in this case)
-        spec.OdeBridge.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
+        spec.OdeEngine.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
         # Set default params of pendulum ode [J, m, l, b0, K, R].
-        spec.OdeBridge.ode_params = [
+        spec.OdeEngine.ode_params = [
             0.000189238,
             0.0563641,
             0.0437891,
@@ -126,11 +123,11 @@ class Pendulum(Object):
             0.0502769,
             9.83536,
         ]
-        spec.OdeBridge.Dfun = spec.config.Dfun
+        spec.OdeEngine.Dfun = spec.config.Dfun
 
         # Create engine states (no agnostic states defined in this case)
-        spec.OdeBridge.states.model_state = EngineState.make("OdeEngineState")
-        spec.OdeBridge.states.model_parameters = EngineState.make("OdeParameters", list(range(5)))
+        spec.OdeEngine.states.model_state = EngineState.make("OdeEngineState")
+        spec.OdeEngine.states.model_parameters = EngineState.make("OdeParameters", list(range(5)))
 
         # Create sensor engine nodes
         obs = EngineNode.make(

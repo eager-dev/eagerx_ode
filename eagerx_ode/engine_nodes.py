@@ -22,13 +22,10 @@ class OdeOutput(EngineNode):
         spec,
         name: str,
         rate: float,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
     ):
         """OdeOutput spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeOutput)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -39,8 +36,8 @@ class OdeOutput(EngineNode):
     def initialize(self):
         # We will probably use self.simulator[self.obj_name] in callback & reset.
         assert (
-            self.process == process.BRIDGE
-        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+            self.process == process.ENGINE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
         self.obj_name = self.config["name"]
 
     @register.states()
@@ -64,13 +61,10 @@ class ActionApplied(EngineNode):
         spec,
         name: str,
         rate: float,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
     ):
         """ActionApplied spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(ActionApplied)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -81,7 +75,7 @@ class ActionApplied(EngineNode):
     def initialize(self):
         pass
         # We will probably use self.simulator[self.obj_name] in callback & reset.
-        # assert self.process == process.BRIDGE, 'Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process'
+        # assert self.process == process.ENGINE, 'Simulation node requires a reference to the simulator, hence it must be launched in the Engine process'
         # self.obj_name = self.config['name']
 
     @register.states()
@@ -111,13 +105,10 @@ class OdeInput(EngineNode):
         name: str,
         rate: float,
         default_action: List,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "green",
     ):
         """OdeInput spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeInput)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -131,8 +122,8 @@ class OdeInput(EngineNode):
     def initialize(self, default_action):
         # We will probably use self.simulator[self.obj_name] in callback & reset.
         assert (
-            self.process == process.BRIDGE
-        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+            self.process == process.ENGINE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
         self.obj_name = self.config["name"]
         self.default_action = np.array(default_action)
 
@@ -166,15 +157,12 @@ class OdeRender(EngineNode):
         spec,
         name: str,
         rate: float,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
         shape=[480, 480],
         render_fn=None,
     ):
         """OdeRender spec"""
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeRender)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -241,15 +229,12 @@ class OdeFloatOutput(EngineNode):
         name: str,
         rate: float,
         idx: int = 0,
-        process: Optional[int] = process.BRIDGE,
+        process: Optional[int] = process.ENGINE,
         color: Optional[str] = "cyan",
     ):
         """OdeFloatOutput spec
         :param idx: index of the array that will be sent through
         """
-        # Performs all the steps to fill-in the params with registered info about all functions.
-        spec.initialize(OdeFloatOutput)
-
         # Modify default node params
         spec.config.name = name
         spec.config.rate = rate
@@ -263,8 +248,8 @@ class OdeFloatOutput(EngineNode):
     def initialize(self, idx):
         # We will probably use self.simulator[self.obj_name] in callback & reset.
         assert (
-            self.process == process.BRIDGE
-        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Bridge process"
+            self.process == process.ENGINE
+        ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
         self.obj_name = self.config["name"]
         self.idx = idx
 

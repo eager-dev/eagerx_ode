@@ -1,5 +1,5 @@
 # ROS packages required
-from eagerx import Object, Bridge, initialize, log, process
+from eagerx import Object, Engine, initialize, log, process
 
 # Environment
 from eagerx.core.env import EagerxEnv
@@ -8,7 +8,7 @@ from eagerx.wrappers import Flatten
 
 # Implementation specific
 import eagerx.nodes  # Registers butterworth_filter # noqa # pylint: disable=unused-import
-import eagerx_ode  # Registers OdeBridge # noqa # pylint: disable=unused-import
+import eagerx_ode  # Registers OdeEngine # noqa # pylint: disable=unused-import
 
 import tests.pendulum.objects  # Registers pendulum # noqa # pylint: disable=unused-import
 
@@ -25,9 +25,9 @@ ENV = process.ENVIRONMENT
     "eps, steps, sync, rtf, p",
     [(3, 3, True, 0, ENV)],
 )
-def test_ode_bridge(eps, steps, sync, rtf, p):
+def test_ode_engine(eps, steps, sync, rtf, p):
     """
-    Creates an environment with the dummy Pendulum and OdeBridge.
+    Creates an environment with the dummy Pendulum and OdeEngine.
 
     :param eps: Number of episodes
     :param steps: Number of steps per episode
@@ -42,7 +42,7 @@ def test_ode_bridge(eps, steps, sync, rtf, p):
 
     # Define unique name for test environment
     name = f"{eps}_{steps}_{sync}_{p}"
-    bridge_p = p
+    engine_p = p
     rate = 30
 
     # Initialize empty graphs
@@ -66,13 +66,13 @@ def test_ode_bridge(eps, steps, sync, rtf, p):
 
     graph.render(pendulum.sensors.image, rate=10)
 
-    # Define bridges
-    bridge = Bridge.make(
-        "OdeBridge",
+    # Define engines
+    engine = Engine.make(
+        "OdeEngine",
         rate=rate,
         sync=sync,
         real_time_factor=rtf,
-        process=bridge_p,
+        process=engine_p,
     )
 
     # Define step function
@@ -93,7 +93,7 @@ def test_ode_bridge(eps, steps, sync, rtf, p):
         return obs, -cost, done, info
 
     # Initialize Environment
-    env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, bridge=bridge, step_fn=step_fn))
+    env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, engine=engine, step_fn=step_fn))
     # env.render("human")
 
     # First reset
@@ -133,7 +133,7 @@ def test_dfun(eps, steps, sync, rtf, p):
 
     # Define unique name for test environment
     name = f"{eps}_{steps}_{sync}_{p}"
-    bridge_p = p
+    engine_p = p
     rate = 30
 
     # Initialize empty graphs
@@ -161,13 +161,13 @@ def test_dfun(eps, steps, sync, rtf, p):
     graph2.connect(source=pendulum2.sensors.action_applied, observation="action_applied", window=1)
     graph2.render(pendulum2.sensors.image, rate=10)
 
-    # Define bridges
-    bridge = Bridge.make(
-        "OdeBridge",
+    # Define engines
+    engine = Engine.make(
+        "OdeEngine",
         rate=rate,
         sync=sync,
         real_time_factor=rtf,
-        process=bridge_p,
+        process=engine_p,
     )
 
     # Define step function
@@ -201,7 +201,7 @@ def test_dfun(eps, steps, sync, rtf, p):
             name=name,
             rate=rate,
             graph=graph,
-            bridge=bridge,
+            engine=engine,
             step_fn=step_fn,
             reset_fn=reset_fn,
         )
@@ -211,7 +211,7 @@ def test_dfun(eps, steps, sync, rtf, p):
             name=name + "2",
             rate=rate,
             graph=graph2,
-            bridge=bridge,
+            engine=engine,
             step_fn=step_fn,
             reset_fn=reset_fn,
         )
