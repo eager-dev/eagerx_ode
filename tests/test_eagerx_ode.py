@@ -1,24 +1,11 @@
 # ROS packages required
-from eagerx import Object, Engine, initialize, log, process
-
-# Environment
-from eagerx.core.env import EagerxEnv
-from eagerx.core.graph import Graph
-from eagerx.wrappers import Flatten
-
-# Implementation specific
-import eagerx.nodes  # Registers butterworth_filter # noqa # pylint: disable=unused-import
-import eagerx_ode  # Registers OdeEngine # noqa # pylint: disable=unused-import
-
-import tests.pendulum.objects  # Registers pendulum # noqa # pylint: disable=unused-import
-
-# Other
+import eagerx
 import numpy as np
 
 import pytest
 
-NP = process.NEW_PROCESS
-ENV = process.ENVIRONMENT
+NP = eagerx.NEW_PROCESS
+ENV = eagerx.ENVIRONMENT
 
 
 @pytest.mark.parametrize(
@@ -36,9 +23,7 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     :param p: Process
     :return:
     """
-
-    # Start roscore
-    roscore = initialize("eagerx_core", anonymous=True, log_level=log.WARN)
+    eagerx.set_log_level(eagerx.WARN)
 
     # Define unique name for test environment
     name = f"{eps}_{steps}_{sync}_{p}"
@@ -46,15 +31,11 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     rate = 30
 
     # Initialize empty graphs
-    graph = Graph.create()
-    graph2 = Graph.create()
+    graph = eagerx.Graph.create()
 
     # Create pendulum
-    pendulum = Object.make(
-        "Eagerx_Ode_Pendulum",
-        "pendulum",
-        states=["model_state", "model_parameters"],
-    )
+    from pendulum.objects import Pendulum
+    pendulum = Pendulum.make("pendulum", states=["model_state", "model_parameters"])
     graph.add(pendulum)
 
     # Connect the nodes
@@ -67,34 +48,44 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     graph.render(pendulum.sensors.image, rate=10)
 
     # Define engines
-    engine = Engine.make(
-        "OdeEngine",
-        rate=rate,
-        sync=sync,
-        real_time_factor=rtf,
-        process=engine_p,
-    )
+    from eagerx_ode.engine import OdeEngine
+    engine = OdeEngine.make(rate=rate, sync=sync, real_time_factor=rtf, process=engine_p)
 
-    # Define step function
-    def step_fn(prev_obs, obs, action, steps):
-        # Calculate reward
-        if len(obs["observation"][0]) == 2:
-            th, thdot = obs["observation"][0]
-            sin_th = np.sin(th)
-            cos_th = np.cos(th)
-        else:
-            sin_th, cos_th, thdot = 0, -1, 0
-        th = np.arctan2(sin_th, cos_th)
-        cost = th**2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
-        # Determine done flag
-        done = steps > 500
-        # Set info:
-        info = dict()
-        return obs, -cost, done, info
+    # Define backend
+    from eagerx.backends.ros1 import Ros1
+    backend = Ros1.make()
+    # from eagerx.backends.single_process import SingleProcess
+    # backend = SingleProcess.make()
+
+    # Define environment
+    class TestEnv(eagerx.BaseEnv):
+        def __init__(self, name, rate, graph, engine, backend, force_start):
+            super().__init__(name, rate, graph, engine, backend=backend, force_start=force_start)
+
+        def step(self, action):
+            obs = self._step(action)
+            # Calculate reward
+            if len(obs["observation"][0]) == 2:
+                th, thdot = obs["observation"][0]
+                sin_th = np.sin(th)
+                cos_th = np.cos(th)
+            else:
+                sin_th, cos_th, thdot = 0, -1, 0
+            th = np.arctan2(sin_th, cos_th)
+            cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
+            # Determine done flag
+            done = steps > 500
+            # Set info:
+            info = dict()
+            return obs, -cost, done, info
+
+        def reset(self):
+            states = self.state_space.sample()
+            obs = self._reset(states)
+            return obs
 
     # Initialize Environment
-    env = Flatten(EagerxEnv(name=name, rate=rate, graph=graph, engine=engine, step_fn=step_fn))
-    # env.render("human")
+    env = TestEnv(name, rate, graph, engine, backend, force_start=True)
 
     # First reset
     env.reset()
@@ -106,8 +97,6 @@ def test_ode_engine(eps, steps, sync, rtf, p):
         env.reset()
     print("\n[Finished]")
     env.shutdown()
-    if roscore:
-        roscore.shutdown()
     print("\n[Shutdown]")
 
 
@@ -128,8 +117,7 @@ def test_dfun(eps, steps, sync, rtf, p):
     :return:
     """
 
-    # Start roscore
-    roscore = initialize("eagerx_core", anonymous=True, log_level=log.WARN)
+    eagerx.set_log_level(eagerx.WARN)
 
     # Define unique name for test environment
     name = f"{eps}_{steps}_{sync}_{p}"
@@ -137,17 +125,15 @@ def test_dfun(eps, steps, sync, rtf, p):
     rate = 30
 
     # Initialize empty graphs
-    graph = Graph.create()
-    graph2 = Graph.create()
+    graph = eagerx.Graph.create()
+    graph2 = eagerx.Graph.create()
 
     # Create pendulum
-    pendulum = Object.make(
-        "Eagerx_Ode_Pendulum",
-        "pendulum",
-    )
+    from pendulum.objects import Pendulum
+    pendulum = Pendulum.make("pendulum")
     graph.add(pendulum)
 
-    pendulum2 = Object.make("Eagerx_Ode_Pendulum", "pendulum2", Dfun=None)
+    pendulum2 = Pendulum.make("pendulum2", Dfun=None)
     graph2.add(pendulum2)
 
     # Connect the nodes
@@ -162,61 +148,48 @@ def test_dfun(eps, steps, sync, rtf, p):
     graph2.render(pendulum2.sensors.image, rate=10)
 
     # Define engines
-    engine = Engine.make(
-        "OdeEngine",
-        rate=rate,
-        sync=sync,
-        real_time_factor=rtf,
-        process=engine_p,
-    )
+    from eagerx_ode.engine import OdeEngine
+    engine = OdeEngine.make(rate=rate, sync=sync, real_time_factor=rtf, process=engine_p)
 
-    # Define step function
-    def step_fn(prev_obs, obs, action, steps):
-        # Calculate reward
-        if len(obs["observation"][0]) == 2:
-            th, thdot = obs["observation"][0]
-            sin_th = np.sin(th)
-            cos_th = np.cos(th)
-        else:
-            sin_th, cos_th, thdot = 0, -1, 0
-        th = np.arctan2(sin_th, cos_th)
-        cost = th**2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
-        # Determine done flag
-        done = steps > 500
-        # Set info:
-        info = dict()
-        return obs, -cost, done, info
+    # Define backend
+    # from eagerx.backends.ros1 import Ros1
+    # backend = Ros1.make()
+    from eagerx.backends.single_process import SingleProcess
+    backend = SingleProcess.make()
 
-    # Define reset function
-    def reset_fn(env):
-        state_dict = env.state_space.sample()
-        for key, value in state_dict.items():
-            if "model_state" in key:
-                state_dict[key] = value * 0.0
-        return state_dict
+    # Define environment
+    class TestEnv(eagerx.BaseEnv):
+        def __init__(self, name, rate, graph, engine, backend, force_start):
+            super().__init__(name, rate, graph, engine, backend=backend, force_start=force_start)
+
+        def step(self, action):
+            obs = self._step(action)
+            # Calculate reward
+            if len(obs["observation"][0]) == 2:
+                th, thdot = obs["observation"][0]
+                sin_th = np.sin(th)
+                cos_th = np.cos(th)
+            else:
+                sin_th, cos_th, thdot = 0, -1, 0
+            th = np.arctan2(sin_th, cos_th)
+            cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
+            # Determine done flag
+            done = steps > 500
+            # Set info:
+            info = dict()
+            return obs, -cost, done, info
+
+        def reset(self):
+            states = self.state_space.sample()
+            for key, value in states.items():
+                if "model_state" in key:
+                    states[key] = value * 0.0
+            obs = self._reset(states)
+            return obs
 
     # Initialize Environment
-    env = Flatten(
-        EagerxEnv(
-            name=name,
-            rate=rate,
-            graph=graph,
-            engine=engine,
-            step_fn=step_fn,
-            reset_fn=reset_fn,
-        )
-    )
-    env2 = Flatten(
-        EagerxEnv(
-            name=name + "2",
-            rate=rate,
-            graph=graph2,
-            engine=engine,
-            step_fn=step_fn,
-            reset_fn=reset_fn,
-        )
-    )
-    # env.render("human")
+    env = TestEnv(name, rate, graph, engine, backend, force_start=True)
+    env2 = TestEnv(name + "_2", rate, graph2, engine, backend, force_start=True)
 
     # First reset
     env.reset()
@@ -229,12 +202,15 @@ def test_dfun(eps, steps, sync, rtf, p):
             obs2, _, _, _ = env2.step(action)
 
             # Assert if result is the same with and without Jacobian
-            assert np.allclose(obs, obs2)
+            assert np.allclose(obs["observation"], obs2["observation"])
         env.reset()
         env2.reset()
     print("\n[Finished]")
     env.shutdown()
     env2.shutdown()
-    if roscore:
-        roscore.shutdown()
     print("\n[Shutdown]")
+
+
+if __name__ == "__main__":
+    test_ode_engine(3, 3, True, 0, ENV)
+    test_dfun(3, 30, True, 0, ENV)
