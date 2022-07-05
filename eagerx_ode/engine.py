@@ -13,7 +13,7 @@ class OdeEngine(Engine):
     @classmethod
     def make(
         cls,
-        rate: int,
+        rate: float,
         sync: Optional[bool] = True,
         process: Optional[int] = process.ENVIRONMENT,
         real_time_factor: Optional[float] = 0,

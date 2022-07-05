@@ -166,7 +166,7 @@ class OdeRender(EngineNode):
         spec.config.render_fn = render_fn
 
         # Set image space
-        spec.outputs.image.space = Box(low=0, high=255, shape=(shape[0], shape[1], 3), dtype="uint8")
+        spec.outputs.image.space = Box(low=0, high=255, shape=(spec.config.shape[0], spec.config.shape[1], 3), dtype="uint8")
         return spec
 
     def initialize(self, spec, object_spec, simulator):
@@ -192,11 +192,11 @@ class OdeRender(EngineNode):
         return dict(image=img)
 
     def _set_render_toggle(self, msg):
-        if msg.data:
+        if msg:
             self.backend.logdebug("[%s] START RENDERING!" % self.name)
         else:
             self.backend.logdebug("[%s] STOPPED RENDERING!" % self.name)
-        self.render_toggle = msg.data
+        self.render_toggle = msg
 
 
 class OdeFloatOutput(EngineNode):
