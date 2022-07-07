@@ -172,7 +172,7 @@ class OdeRender(EngineNode):
     def initialize(self, spec, object_spec, simulator):
         self.shape = tuple(spec.config.shape)
         self.render_toggle = False
-        self.render_toggle_pub = self.backend.Subscriber("%s/env/render/toggle" % self.ns, "bool", self._set_render_toggle)
+        self.sub_toggle = self.backend.Subscriber("%s/env/render/toggle" % self.ns, "bool", self._set_render_toggle)
         try:
             self.render_fn = load(spec.config.render_fn)
         except (ModuleNotFoundError, TypeError) as e:
@@ -197,6 +197,10 @@ class OdeRender(EngineNode):
         else:
             self.backend.logdebug("[%s] STOPPED RENDERING!" % self.name)
         self.render_toggle = msg
+
+    def shutdown(self):
+        self.backend.logdebug(f"[{self.name}] {self.name}.shutdown() called.")
+        self.sub_toggle.unregister()
 
 
 class OdeFloatOutput(EngineNode):
