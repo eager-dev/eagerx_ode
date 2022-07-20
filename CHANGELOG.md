@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.25 (2022-07-20)
+
+
 ## v0.1.12 (2022-05-16)
 ### Fix
 * Update dependencies ([`aebceaf`](https://github.com/eager-dev/eagerx_ode/commit/aebceaf3734a09aba9071f2eebaddf03b9c9eb4d))
