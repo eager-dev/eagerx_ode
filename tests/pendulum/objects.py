@@ -1,4 +1,4 @@
-from gym.spaces import Box
+from eagerx.core.space import Space
 from eagerx_ode.engine import OdeEngine
 from eagerx.core.entities import Object
 from eagerx.core.specs import ObjectSpec
@@ -10,15 +10,15 @@ import numpy as np
 class Pendulum(Object):
     @classmethod
     @register.sensors(
-        pendulum_output=Box(low=np.array([-3.14, -9], dtype="float32"), high=np.array([3.14, 9], dtype="float32")),
-        action_applied=Box(low=np.array([-3], dtype="float32"), high=np.array([3], dtype="float32")),
-        image=None,
-        theta=Box(low=-999.0, high=999.0, shape=(), dtype="float32"),
-        dtheta=Box(low=-999.0, high=999.0, shape=(), dtype="float32")
+        pendulum_output=Space(low=np.array([-3.14, -9], dtype="float32"), high=np.array([3.14, 9], dtype="float32")),
+        action_applied=Space(low=np.array([-3], dtype="float32"), high=np.array([3], dtype="float32")),
+        image=Space(dtype="uint8"),
+        theta=Space(low=-999.0, high=999.0, shape=(), dtype="float32"),
+        dtheta=Space(low=-999.0, high=999.0, shape=(), dtype="float32")
     )
-    @register.actuators(pendulum_input=Box(low=np.array([-3], dtype="float32"), high=np.array([3], dtype="float32")))
-    @register.engine_states(model_state=Box(low=np.array([-3.14, -9], dtype="float32"), high=np.array([3.14, 9], dtype="float32")),
-                            model_parameters=None)
+    @register.actuators(pendulum_input=Space(low=np.array([-3], dtype="float32"), high=np.array([3], dtype="float32")))
+    @register.engine_states(model_state=Space(low=np.array([-3.14, -9], dtype="float32"), high=np.array([3.14, 9], dtype="float32")),
+                            model_parameters=Space(dtype="float32"))
     def make(
         cls,
         name: str,
@@ -51,14 +51,14 @@ class Pendulum(Object):
 
         # Set image space
         shape = (spec.config.render_shape[0], spec.config.render_shape[1], 3)
-        spec.sensors.image.space = Box(low=0, high=255, shape=shape, dtype="uint8")
+        spec.sensors.image.space = Space(low=0, high=255, shape=shape, dtype="uint8")
 
         # Set model_parameters properties: (space_converters) # [J, m, l, b0, K, R, c, a]
         fixed = [0.000189238, 0.0563641, 0.0437891, 0.000142205, 0.0502769, 9.83536]
         diff = [0, 0, 0, 0.05, 0.05]  # Percentual delta with respect to fixed value
         low = np.array([val - diff * val for val, diff in zip(fixed, diff)], dtype="float32")
         high = np.array([val + diff * val for val, diff in zip(fixed, diff)], dtype="float32")
-        spec.states.model_parameters.space = Box(low=low, high=high)
+        spec.states.model_parameters.space = Space(low=low, high=high)
 
         return spec
 
