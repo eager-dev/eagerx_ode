@@ -34,7 +34,7 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     # Initialize empty graphs
     graph = eagerx.Graph.create()
 
-    # Create pendulum
+    # Create pendulum 
     try:
         from tests.pendulum.objects import Pendulum
     except ImportError:
