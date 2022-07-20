@@ -25,7 +25,7 @@ class Pendulum(Object):
         sensors=None,
         states=None,
         rate=30,
-        Dfun="pendulum.pendulum_ode/pendulum_dfun",
+        Dfun="tests.pendulum.pendulum_ode/pendulum_dfun",
     ):
         """Object spec of pendulum"""
         spec = cls.get_specification()
@@ -67,7 +67,7 @@ class Pendulum(Object):
     def ode_engine(spec: ObjectSpec, graph: EngineGraph):
         """Engine-specific implementation (OdeEngine) of the object."""
         # Set object arguments (nothing to set here in this case)
-        spec.engine.ode = "pendulum.pendulum_ode/pendulum_ode"
+        spec.engine.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
         # Set default params of pendulum ode [J, m, l, b0, K, R].
         spec.engine.ode_params = [
             0.000189238,
@@ -90,7 +90,7 @@ class Pendulum(Object):
         image = OdeRender.make(
             "image",
             shape=spec.config.render_shape,
-            render_fn="pendulum.pendulum_render/pendulum_render_fn",
+            render_fn="tests.pendulum.pendulum_render/pendulum_render_fn",
             rate=spec.sensors.image.rate,
             process=0,
         )
