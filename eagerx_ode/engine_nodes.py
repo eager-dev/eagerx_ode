@@ -184,9 +184,8 @@ class OdeRender(EngineNode):
         pass
 
     @register.inputs(
-        tick=Space(shape=(), dtype="int64"),
-        observation=Space(dtype="float32"),
-        action_applied=Space(dtype="float32"))
+        tick=Space(shape=(), dtype="int64"), observation=Space(dtype="float32"), action_applied=Space(dtype="float32")
+    )
     @register.outputs(image=Space(dtype="uint8"))
     def callback(self, t_n: float, tick: Msg, observation: Msg, action_applied: Msg):
         img = np.zeros((self.shape[0], self.shape[1], 3), np.uint8)
