@@ -1,8 +1,8 @@
-from gym.spaces import Box, Discrete
 from typing import Optional, List
 import numpy as np
 
 # IMPORT EAGERX
+from eagerx.core.space import Space
 from eagerx.core.constants import process
 from eagerx.utils.utils import Msg, load
 from eagerx.core.entities import EngineNode
@@ -41,8 +41,8 @@ class OdeOutput(EngineNode):
     def reset(self):
         pass
 
-    @register.inputs(tick=Discrete(99999))
-    @register.outputs(observation=None)
+    @register.inputs(tick=Space(shape=(), dtype="int64"))
+    @register.outputs(observation=Space(dtype="float32"))
     def callback(self, t_n: float, tick: Msg):
         assert isinstance(self.simulator[self.obj_name], dict), (
             'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
@@ -78,8 +78,8 @@ class ActionApplied(EngineNode):
     def reset(self):
         pass
 
-    @register.inputs(tick=Discrete(99999), action_applied=None)
-    @register.outputs(action_applied=None)
+    @register.inputs(tick=Space(shape=(), dtype="int64"), action_applied=Space(dtype="float32"))
+    @register.outputs(action_applied=Space(dtype="float32"))
     def callback(self, t_n: float, tick: Msg, action_applied: Msg):
         if len(action_applied.msgs) > 0:
             data = action_applied.msgs[-1]
@@ -125,8 +125,8 @@ class OdeInput(EngineNode):
     def reset(self):
         self.simulator[self.obj_name]["input"] = np.squeeze(np.array(self.default_action))
 
-    @register.inputs(tick=Discrete(99999), action=None)
-    @register.outputs(action_applied=None)
+    @register.inputs(tick=Space(shape=(), dtype="int64"), action=Space(dtype="float32"))
+    @register.outputs(action_applied=Space(dtype="float32"))
     def callback(self, t_n: float, tick: Msg, action: Msg):
         assert isinstance(self.simulator[self.obj_name], dict), (
             'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
@@ -166,7 +166,7 @@ class OdeRender(EngineNode):
         spec.config.render_fn = render_fn
 
         # Set image space
-        spec.outputs.image.space = Box(low=0, high=255, shape=(spec.config.shape[0], spec.config.shape[1], 3), dtype="uint8")
+        spec.outputs.image.space = Space(low=0, high=255, shape=(spec.config.shape[0], spec.config.shape[1], 3), dtype="uint8")
         return spec
 
     def initialize(self, spec, object_spec, simulator):
@@ -183,8 +183,11 @@ class OdeRender(EngineNode):
     def reset(self):
         pass
 
-    @register.inputs(tick=Discrete(99999), observation=None, action_applied=None)
-    @register.outputs(image=None)
+    @register.inputs(
+        tick=Space(shape=(), dtype="int64"),
+        observation=Space(dtype="float32"),
+        action_applied=Space(dtype="float32"))
+    @register.outputs(image=Space(dtype="uint8"))
     def callback(self, t_n: float, tick: Msg, observation: Msg, action_applied: Msg):
         img = np.zeros((self.shape[0], self.shape[1], 3), np.uint8)
         if self.render_toggle:
@@ -246,8 +249,8 @@ class OdeFloatOutput(EngineNode):
     def reset(self):
         pass
 
-    @register.inputs(tick=Discrete(99999))
-    @register.outputs(observation=Box(low=-9999, high=9999, shape=(), dtype="float32"))
+    @register.inputs(tick=Space(shape=(), dtype="int64"))
+    @register.outputs(observation=Space(shape=(), dtype="float32"))
     def callback(self, t_n: float, tick: Msg):
         assert isinstance(self.simulator[self.obj_name], dict), (
             'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
