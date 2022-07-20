@@ -1,89 +1,26 @@
-# ROS IMPORTS
-from std_msgs.msg import Float32MultiArray, Float32
-from sensor_msgs.msg import Image
-
-# EAGERx IMPORTS
+from eagerx.core.space import Space
 from eagerx_ode.engine import OdeEngine
-from eagerx.core.entities import (
-    Object,
-    EngineNode,
-    SpaceConverter,
-    EngineState,
-)
+from eagerx.core.entities import Object
 from eagerx.core.specs import ObjectSpec
 from eagerx.core.graph_engine import EngineGraph
 import eagerx.core.register as register
+import numpy as np
 
 
 class Pendulum(Object):
-    entity_id = "Eagerx_Ode_Pendulum"
-
-    @staticmethod
+    @classmethod
     @register.sensors(
-        pendulum_output=Float32MultiArray, action_applied=Float32MultiArray, image=Image, theta=Float32, dtheta=Float32
+        pendulum_output=Space(low=np.array([-3.14, -9], dtype="float32"), high=np.array([3.14, 9], dtype="float32")),
+        action_applied=Space(low=np.array([-3], dtype="float32"), high=np.array([3], dtype="float32")),
+        image=Space(dtype="uint8"),
+        theta=Space(low=-999.0, high=999.0, shape=(), dtype="float32"),
+        dtheta=Space(low=-999.0, high=999.0, shape=(), dtype="float32")
     )
-    @register.actuators(pendulum_input=Float32MultiArray)
-    @register.engine_states(model_state=Float32MultiArray, model_parameters=Float32MultiArray)
-    @register.config(render_shape=[480, 480], Dfun="tests.pendulum.pendulum_ode/pendulum_dfun")
-    def agnostic(spec: ObjectSpec, rate):
-        """Agnostic definition of the pendulum"""
-        # Register standard converters, space_converters, and processors
-        import eagerx.converters  # noqa # pylint: disable=unused-import
-
-        # Set observation properties: (space_converters, rate, etc...)
-        spec.sensors.pendulum_output.rate = rate
-        spec.sensors.pendulum_output.space_converter = SpaceConverter.make(
-            "Space_Float32MultiArray", low=[-3.14, -9], high=[3.14, 9], dtype="float32"
-        )
-
-        spec.sensors.action_applied.rate = rate
-        spec.sensors.action_applied.space_converter = SpaceConverter.make(
-            "Space_Float32MultiArray", low=[-3], high=[3], dtype="float32"
-        )
-
-        spec.sensors.image.rate = 15
-        spec.sensors.image.space_converter = SpaceConverter.make(
-            "Space_Image",
-            low=0,
-            high=1,
-            shape=spec.config.render_shape,
-            dtype="float32",
-        )
-
-        spec.sensors.theta.rate = rate
-        spec.sensors.theta.space_converter = SpaceConverter.make("Space_Float32", low=-9999.0, high=9999.0, dtype="float32")
-
-        spec.sensors.dtheta.rate = rate
-        spec.sensors.dtheta.space_converter = SpaceConverter.make("Space_Float32", low=-9999.0, high=9999.0, dtype="float32")
-
-        # Set actuator properties: (space_converters, rate, etc...)
-        spec.actuators.pendulum_input.rate = rate
-        spec.actuators.pendulum_input.window = 1
-        spec.actuators.pendulum_input.space_converter = SpaceConverter.make(
-            "Space_Float32MultiArray", low=[-3], high=[3], dtype="float32"
-        )
-
-        # Set model_state properties: (space_converters)
-        spec.states.model_state.space_converter = SpaceConverter.make(
-            "Space_Float32MultiArray",
-            low=[-3.14159265359, -9],
-            high=[3.14159265359, 9],
-            dtype="float32",
-        )
-
-        # Set model_parameters properties: (space_converters) # [J, m, l, b0, K, R, c, a]
-        fixed = [0.000189238, 0.0563641, 0.0437891, 0.000142205, 0.0502769, 9.83536]
-        diff = [0, 0, 0, 0.05, 0.05]  # Percentual delta with respect to fixed value
-        low = [val - diff * val for val, diff in zip(fixed, diff)]
-        high = [val + diff * val for val, diff in zip(fixed, diff)]
-        spec.states.model_parameters.space_converter = SpaceConverter.make(
-            "Space_Float32MultiArray", low=low, high=high, dtype="float32"
-        )
-
-    @staticmethod
-    @register.spec(entity_id, Object)
-    def spec(
-        spec: ObjectSpec,
+    @register.actuators(pendulum_input=Space(low=np.array([-3], dtype="float32"), high=np.array([3], dtype="float32")))
+    @register.engine_states(model_state=Space(low=np.array([-3.14, -9], dtype="float32"), high=np.array([3.14, 9], dtype="float32")),
+                            model_parameters=Space(dtype="float32"))
+    def make(
+        cls,
         name: str,
         sensors=None,
         states=None,
@@ -91,6 +28,8 @@ class Pendulum(Object):
         Dfun="tests.pendulum.pendulum_ode/pendulum_dfun",
     ):
         """Object spec of pendulum"""
+        spec = cls.get_specification()
+
         # Modify default agnostic params
         # Only allow changes to the agnostic params (rates, windows, (space)converters, etc...
         spec.config.name = name
@@ -100,22 +39,37 @@ class Pendulum(Object):
 
         # Add registered agnostic params
         spec.config.render_shape = [480, 480]
-
         spec.config.Dfun = Dfun
 
-        # Add engine implementation
-        Pendulum.agnostic(spec, rate)
+        # Set observation properties: (space_converters, rate, etc...)
+        spec.sensors.pendulum_output.rate = rate
+        spec.sensors.action_applied.rate = rate
+        spec.sensors.dtheta.rate = rate
+        spec.sensors.theta.rate = rate
+        spec.actuators.pendulum_input.rate = rate
+        spec.sensors.image.rate = 15
+
+        # Set image space
+        shape = (spec.config.render_shape[0], spec.config.render_shape[1], 3)
+        spec.sensors.image.space = Space(low=0, high=255, shape=shape, dtype="uint8")
+
+        # Set model_parameters properties: (space_converters) # [J, m, l, b0, K, R, c, a]
+        fixed = [0.000189238, 0.0563641, 0.0437891, 0.000142205, 0.0502769, 9.83536]
+        diff = [0, 0, 0, 0.05, 0.05]  # Percentual delta with respect to fixed value
+        low = np.array([val - diff * val for val, diff in zip(fixed, diff)], dtype="float32")
+        high = np.array([val + diff * val for val, diff in zip(fixed, diff)], dtype="float32")
+        spec.states.model_parameters.space = Space(low=low, high=high)
+
+        return spec
 
     @staticmethod
-    @register.engine(entity_id, OdeEngine)  # This decorator pre-initializes engine implementation with default object_params
+    @register.engine(OdeEngine)  # This decorator pre-initializes engine implementation with default object_params
     def ode_engine(spec: ObjectSpec, graph: EngineGraph):
         """Engine-specific implementation (OdeEngine) of the object."""
-        # Import any object specific entities for this engine
-
         # Set object arguments (nothing to set here in this case)
-        spec.OdeEngine.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
+        spec.engine.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
         # Set default params of pendulum ode [J, m, l, b0, K, R].
-        spec.OdeEngine.ode_params = [
+        spec.engine.ode_params = [
             0.000189238,
             0.0563641,
             0.0437891,
@@ -123,34 +77,29 @@ class Pendulum(Object):
             0.0502769,
             9.83536,
         ]
-        spec.OdeEngine.Dfun = spec.config.Dfun
+        spec.engine.Dfun = spec.config.Dfun
 
         # Create engine states (no agnostic states defined in this case)
-        spec.OdeEngine.states.model_state = EngineState.make("OdeEngineState")
-        spec.OdeEngine.states.model_parameters = EngineState.make("OdeParameters", list(range(5)))
+        from eagerx_ode.engine_states import OdeEngineState, OdeParameters
+        spec.engine.states.model_state = OdeEngineState.make()
+        spec.engine.states.model_parameters = OdeParameters.make(list(range(5)))
 
         # Create sensor engine nodes
-        obs = EngineNode.make(
-            "OdeOutput",
-            "pendulum_output",
-            rate=spec.sensors.pendulum_output.rate,
-            process=2,
-        )
-        image = EngineNode.make(
-            "OdeRender",
+        from eagerx_ode.engine_nodes import OdeOutput, OdeInput, OdeFloatOutput, OdeRender, ActionApplied
+        obs = OdeOutput.make("pendulum_output", rate=spec.sensors.pendulum_output.rate, process=2)
+        image = OdeRender.make(
             "image",
             shape=spec.config.render_shape,
             render_fn="tests.pendulum.pendulum_render/pendulum_render_fn",
             rate=spec.sensors.image.rate,
             process=0,
         )
-        theta = EngineNode.make("OdeFloatOutput", "theta", rate=spec.sensors.theta.rate, process=2, idx=0)
+        theta = OdeFloatOutput.make("theta", rate=spec.sensors.theta.rate, process=2, idx=0)
 
-        dtheta = EngineNode.make("OdeFloatOutput", "dtheta", rate=spec.sensors.dtheta.rate, process=2, idx=1)
+        dtheta = OdeFloatOutput.make("dtheta", rate=spec.sensors.dtheta.rate, process=2, idx=1)
 
         # Create actuator engine nodes
-        action = EngineNode.make(
-            "OdeInput",
+        action = OdeInput.make(
             "pendulum_actuator",
             rate=spec.actuators.pendulum_input.rate,
             process=2,
@@ -170,7 +119,7 @@ class Pendulum(Object):
         graph.connect(source=image.outputs.image, sensor="image")
 
         # Add action applied
-        applied = EngineNode.make("ActionApplied", "applied", rate=spec.sensors.action_applied.rate, process=2)
+        applied = ActionApplied.make("applied", rate=spec.sensors.action_applied.rate, process=2)
         graph.add(applied)
         graph.connect(
             source=action.outputs.action_applied,

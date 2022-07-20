@@ -1,31 +1,33 @@
-import numpy as np
 from eagerx.core.entities import EngineState
-import eagerx.core.register as register
+import numpy as np
 
 
 class OdeEngineState(EngineState):
-    @staticmethod
-    @register.spec("OdeEngineState", EngineState)
-    def spec(spec):
-        pass
+    @classmethod
+    def make(cls):
+        spec = cls.get_specification()
+        return spec
 
-    def initialize(self):
-        self.obj_name = self.config["name"]
+    def initialize(self, spec, object_spec, simulator):
+        self.simulator = simulator
+        self.obj_name = object_spec.config.name
 
-    def reset(self, state, done):
+    def reset(self, state):
         self.simulator[self.obj_name]["state"] = np.squeeze(state.data)
 
 
 class OdeParameters(EngineState):
-    @staticmethod
-    @register.spec("OdeParameters", EngineState)
-    def spec(spec, indices):
+    @classmethod
+    def make(cls, indices):
+        spec = cls.get_specification()
         spec.config.indices = indices
+        return spec
 
-    def initialize(self, indices):
-        self.obj_name = self.config["name"]
-        self.indices = indices
+    def initialize(self, spec, object_spec, simulator):
+        self.simulator = simulator
+        self.obj_name = object_spec.config.name
+        self.indices = spec.config.indices
 
-    def reset(self, state, done):
+    def reset(self, state):
         for i in self.indices:
             self.simulator[self.obj_name]["ode_params"][i] = state.data[i]
