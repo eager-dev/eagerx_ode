@@ -34,7 +34,7 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     graph = eagerx.Graph.create()
 
     # Create pendulum
-    from pendulum.objects import Pendulum
+    from tests.pendulum.objects import Pendulum
     pendulum = Pendulum.make("pendulum", states=["model_state", "model_parameters"])
     graph.add(pendulum)
 
@@ -129,7 +129,7 @@ def test_dfun(eps, steps, sync, rtf, p):
     graph2 = eagerx.Graph.create()
 
     # Create pendulum
-    from pendulum.objects import Pendulum
+    from tests.pendulum.objects import Pendulum
     pendulum = Pendulum.make("pendulum")
     graph.add(pendulum)
 
