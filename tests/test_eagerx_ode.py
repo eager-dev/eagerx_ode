@@ -8,6 +8,7 @@ NP = eagerx.NEW_PROCESS
 ENV = eagerx.ENVIRONMENT
 
 
+@pytest.mark.timeout(60)
 @pytest.mark.parametrize(
     "eps, steps, sync, rtf, p",
     [(3, 3, True, 0, ENV)],
@@ -100,6 +101,7 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     print("\n[Shutdown]")
 
 
+@pytest.mark.timeout(60)
 @pytest.mark.parametrize(
     "eps, steps, sync, rtf, p",
     [(3, 30, True, 0, ENV)],
