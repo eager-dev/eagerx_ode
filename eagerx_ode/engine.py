@@ -68,17 +68,16 @@ class OdeEngine(Engine):
         self.odeint_args = dict(rtol=rtol, atol=atol, hmax=hmax, hmin=hmin, mxstep=mxstep)
         self.simulator = dict()
 
-    def add_object(self, spec, ode: str = None, Dfun: Optional[str] = None, ode_params: Optional[List] = None):
+    def add_object(self, name, ode: str = None, Dfun: Optional[str] = None, ode_params: Optional[List] = None):
         # add object to simulator (we have a ref to the simulator with self.simulator)
-        self.backend.loginfo(f'Adding object "{spec.config.name}" of type "{spec.config.entity_id}" to the simulator.')
+        self.backend.loginfo(f'Adding object "{name}" to the simulator.')
 
         # Extract relevant agnostic params
-        obj_name = spec.config.name
         ode = load(ode)
         Dfun = load(Dfun) if Dfun is not None else None
 
         # Create new env, and add to simulator
-        self.simulator[obj_name] = dict(
+        self.simulator[name].update(
             ode=ode,
             Dfun=Dfun,
             state=None,

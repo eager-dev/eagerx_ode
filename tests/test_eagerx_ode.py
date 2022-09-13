@@ -1,5 +1,6 @@
 # ROS packages required
 import eagerx
+from copy import deepcopy
 import numpy as np
 
 import pytest
@@ -34,13 +35,19 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     # Initialize empty graphs
     graph = eagerx.Graph.create()
 
-    # Create pendulum 
+    # Create pendulum
     try:
         from tests.pendulum.objects import Pendulum
+        running_local = False
     except ImportError:
         from pendulum.objects import Pendulum
-    pendulum = Pendulum.make("pendulum", states=["model_state", "model_parameters"])
+        running_local = True
+    pendulum = Pendulum.make("pendulum")
     graph.add(pendulum)
+
+    if running_local:
+        pendulum.config.ode = "pendulum.pendulum_ode/pendulum_ode"
+        pendulum.config.Dfun = "pendulum.pendulum_ode/pendulum_dfun"
 
     # Connect the nodes
     graph.connect(action="action", target=pendulum.actuators.pendulum_input)
@@ -136,13 +143,20 @@ def test_dfun(eps, steps, sync, rtf, p):
     # Create pendulum
     try:
         from tests.pendulum.objects import Pendulum
+        running_local = False
     except ImportError:
         from pendulum.objects import Pendulum
+        running_local = True
     pendulum = Pendulum.make("pendulum")
     graph.add(pendulum)
-
     pendulum2 = Pendulum.make("pendulum2", Dfun=None)
     graph2.add(pendulum2)
+
+    if running_local:
+        pendulum.config.ode = "pendulum.pendulum_ode/pendulum_ode"
+        pendulum.config.Dfun = "pendulum.pendulum_ode/pendulum_dfun"
+        pendulum2.config.ode = "pendulum.pendulum_ode/pendulum_ode"
+        pendulum2.config.Dfun = None
 
     # Connect the nodes
     graph.connect(action="action", target=pendulum.actuators.pendulum_input)
@@ -196,12 +210,12 @@ def test_dfun(eps, steps, sync, rtf, p):
             return obs
 
     # Initialize Environment
-    env = TestEnv(name, rate, graph, engine, backend, force_start=True)
-    env2 = TestEnv(name + "_2", rate, graph2, engine, backend, force_start=True)
+    env = TestEnv(name, rate, graph, deepcopy(engine), backend, force_start=True)
+    env2 = TestEnv(name + "_2", rate, graph2, deepcopy(engine), backend, force_start=True)
 
     # First reset
-    env.reset()
-    env2.reset()
+    obs = env.reset()
+    obs2 = env2.reset()
     action = env.action_space.sample()
     for j in range(eps):
         print("\n[Episode %s]" % j)
@@ -220,5 +234,5 @@ def test_dfun(eps, steps, sync, rtf, p):
 
 
 if __name__ == "__main__":
-    test_ode_engine(3, 3, True, 0, ENV)
     test_dfun(3, 30, True, 0, ENV)
+    test_ode_engine(3, 3, True, 0, ENV)

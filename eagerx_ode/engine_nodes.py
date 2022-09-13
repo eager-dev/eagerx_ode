@@ -29,12 +29,11 @@ class OdeOutput(EngineNode):
         spec.config.outputs = ["observation"]
         return spec
 
-    def initialize(self, spec, object_spec, simulator):
-        # We will probably use self.simulator[self.obj_name] in callback & reset.
+    def initialize(self, spec, simulator):
+        # We will probably use self.simulator in callback & reset.
         assert (
             spec.config.process == process.ENGINE
         ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
-        self.obj_name = object_spec.config.name
         self.simulator = simulator
 
     @register.states()
@@ -44,10 +43,10 @@ class OdeOutput(EngineNode):
     @register.inputs(tick=Space(shape=(), dtype="int64"))
     @register.outputs(observation=Space(dtype="float32"))
     def callback(self, t_n: float, tick: Msg):
-        assert isinstance(self.simulator[self.obj_name], dict), (
-            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
+        assert isinstance(self.simulator, dict), (
+            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator
         )
-        data = self.simulator[self.obj_name]["state"]
+        data = self.simulator["state"]
         return dict(observation=data.astype("float32"))
 
 
@@ -71,7 +70,7 @@ class ActionApplied(EngineNode):
         spec.config.outputs = ["action_applied"]
         return spec
 
-    def initialize(self, spec, object_spec, simulator):
+    def initialize(self, spec, simulator):
         pass
 
     @register.states()
@@ -112,28 +111,27 @@ class OdeInput(EngineNode):
         spec.config.default_action = default_action
         return spec
 
-    def initialize(self, spec, object_spec, simulator):
-        # We will probably use self.simulator[self.obj_name] in callback & reset.
+    def initialize(self, spec, simulator):
+        # We will probably use self.simulator in callback & reset.
         assert (
             spec.config.process == process.ENGINE
         ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
-        self.obj_name = object_spec.config.name
         self.simulator = simulator
         self.default_action = np.array(spec.config.default_action)
 
     @register.states()
     def reset(self):
-        self.simulator[self.obj_name]["input"] = np.squeeze(np.array(self.default_action))
+        self.simulator["input"] = np.squeeze(np.array(self.default_action))
 
     @register.inputs(tick=Space(shape=(), dtype="int64"), action=Space(dtype="float32"))
     @register.outputs(action_applied=Space(dtype="float32"))
     def callback(self, t_n: float, tick: Msg, action: Msg):
-        assert isinstance(self.simulator[self.obj_name], dict), (
-            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
+        assert isinstance(self.simulator, dict), (
+            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator
         )
 
         # Set action in simulator for next step.
-        self.simulator[self.obj_name]["input"] = np.squeeze(action.msgs[-1].data)
+        self.simulator["input"] = np.squeeze(action.msgs[-1].data)
 
         # Send action that has been applied.
         return dict(action_applied=action.msgs[-1])
@@ -169,7 +167,7 @@ class OdeRender(EngineNode):
         spec.outputs.image.space = Space(low=0, high=255, shape=(spec.config.shape[0], spec.config.shape[1], 3), dtype="uint8")
         return spec
 
-    def initialize(self, spec, object_spec, simulator):
+    def initialize(self, spec, simulator):
         self.shape = tuple(spec.config.shape)
         self.render_toggle = False
         self.sub_toggle = self.backend.Subscriber("%s/env/render/toggle" % self.ns, "bool", self._set_render_toggle)
@@ -235,12 +233,11 @@ class OdeFloatOutput(EngineNode):
         spec.config.idx = idx
         return spec
 
-    def initialize(self, spec, object_spec, simulator):
-        # We will probably use self.simulator[self.obj_name] in callback & reset.
+    def initialize(self, spec, simulator):
+        # We will probably use self.simulator in callback & reset.
         assert (
             self.process == process.ENGINE
         ), "Simulation node requires a reference to the simulator, hence it must be launched in the Engine process"
-        self.obj_name = object_spec.config.name
         self.simulator = simulator
         self.idx = spec.config.idx
 
@@ -251,8 +248,8 @@ class OdeFloatOutput(EngineNode):
     @register.inputs(tick=Space(shape=(), dtype="int64"))
     @register.outputs(observation=Space(shape=(), dtype="float32"))
     def callback(self, t_n: float, tick: Msg):
-        assert isinstance(self.simulator[self.obj_name], dict), (
-            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator[self.obj_name]
+        assert isinstance(self.simulator, dict), (
+            'Simulator object "%s" is not compatible with this simulation node.' % self.simulator
         )
-        data = self.simulator[self.obj_name]["state"]
+        data = self.simulator["state"]
         return dict(observation=np.array(data[self.idx], dtype="float32"))
