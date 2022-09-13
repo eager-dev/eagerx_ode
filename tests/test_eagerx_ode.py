@@ -1,5 +1,6 @@
 # ROS packages required
 import eagerx
+from copy import deepcopy
 import numpy as np
 
 import pytest
@@ -196,8 +197,8 @@ def test_dfun(eps, steps, sync, rtf, p):
             return obs
 
     # Initialize Environment
-    env = TestEnv(name, rate, graph, engine, backend, force_start=True)
-    env2 = TestEnv(name + "_2", rate, graph2, engine, backend, force_start=True)
+    env = TestEnv(name, rate, graph, deepcopy(engine), backend, force_start=True)
+    env2 = TestEnv(name + "_2", rate, graph2, deepcopy(engine), backend, force_start=True)
 
     # First reset
     env.reset()
