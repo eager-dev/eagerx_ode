@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.26 (2022-09-13)
+### Fix
+* Graph refactor ([#41](https://github.com/eager-dev/eagerx_ode/issues/41)) ([`e96ac66`](https://github.com/eager-dev/eagerx_ode/commit/e96ac668d9c84b083784fda9bb148910e450e20c))
+
 ## v0.1.25 (2022-07-20)
 
 
