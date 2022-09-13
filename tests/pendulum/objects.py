@@ -25,6 +25,7 @@ class Pendulum(Object):
         sensors=None,
         states=None,
         rate=30,
+        ode="tests.pendulum.pendulum_ode/pendulum_ode",
         Dfun="tests.pendulum.pendulum_ode/pendulum_dfun",
     ):
         """Object spec of pendulum"""
@@ -39,6 +40,7 @@ class Pendulum(Object):
 
         # Add registered agnostic params
         spec.config.render_shape = [480, 480]
+        spec.config.ode = ode
         spec.config.Dfun = Dfun
 
         # Set observation properties: (space_converters, rate, etc...)
@@ -55,7 +57,7 @@ class Pendulum(Object):
 
         # Set model_parameters properties: (space_converters) # [J, m, l, b0, K, R, c, a]
         fixed = [0.000189238, 0.0563641, 0.0437891, 0.000142205, 0.0502769, 9.83536]
-        diff = [0, 0, 0, 0.05, 0.05]  # Percentual delta with respect to fixed value
+        diff = [0, 0, 0, 0.00, 0.00]  # Percentual delta with respect to fixed value
         low = np.array([val - diff * val for val, diff in zip(fixed, diff)], dtype="float32")
         high = np.array([val + diff * val for val, diff in zip(fixed, diff)], dtype="float32")
         spec.states.model_parameters.space = Space(low=low, high=high)
@@ -67,7 +69,7 @@ class Pendulum(Object):
     def ode_engine(spec: ObjectSpec, graph: EngineGraph):
         """Engine-specific implementation (OdeEngine) of the object."""
         # Set object arguments (nothing to set here in this case)
-        spec.engine.ode = "tests.pendulum.pendulum_ode/pendulum_ode"
+        spec.engine.ode = spec.config.ode
         # Set default params of pendulum ode [J, m, l, b0, K, R].
         spec.engine.ode_params = [
             0.000189238,
