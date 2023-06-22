@@ -70,8 +70,8 @@ def test_ode_engine(eps, steps, sync, rtf, p):
 
     # Define environment
     class TestEnv(eagerx.BaseEnv):
-        def __init__(self, name, rate, graph, engine, backend, force_start):
-            super().__init__(name, rate, graph, engine, backend=backend, force_start=force_start)
+        def __init__(self, name, rate, graph, engine, backend, force_start, render_mode: str = None):
+            super().__init__(name, rate, graph, engine, backend=backend, force_start=force_start, render_mode=render_mode)
 
         def step(self, action):
             obs = self._step(action)
@@ -85,15 +85,20 @@ def test_ode_engine(eps, steps, sync, rtf, p):
             th = np.arctan2(sin_th, cos_th)
             cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
             # Determine done flag
+            truncated = steps > 500
             done = steps > 500
             # Set info:
             info = dict()
-            return obs, -cost, done, info
+            if self.render_mode == "human":
+                self.render()
+            return obs, -cost, truncated, done, info
 
-        def reset(self):
+        def reset(self, seed = None, options = None):
             states = self.state_space.sample()
             obs = self._reset(states)
-            return obs
+            if self.render_mode == "human":
+                self.render()
+            return obs, {}
 
     # Initialize Environment
     env = TestEnv(name, rate, graph, engine, backend, force_start=True)
@@ -104,7 +109,7 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     for j in range(eps):
         print("\n[Episode %s]" % j)
         for i in range(steps):
-            obs, _, _, _ = env.step(action)
+            obs, _, _, _, _ = env.step(action)
         env.reset()
     print("\n[Finished]")
     env.shutdown()
@@ -181,8 +186,8 @@ def test_dfun(eps, steps, sync, rtf, p):
 
     # Define environment
     class TestEnv(eagerx.BaseEnv):
-        def __init__(self, name, rate, graph, engine, backend, force_start):
-            super().__init__(name, rate, graph, engine, backend=backend, force_start=force_start)
+        def __init__(self, name, rate, graph, engine, backend, force_start, render_mode: str = None):
+            super().__init__(name, rate, graph, engine, backend=backend, force_start=force_start, render_mode=render_mode)
 
         def step(self, action):
             obs = self._step(action)
@@ -196,32 +201,33 @@ def test_dfun(eps, steps, sync, rtf, p):
             th = np.arctan2(sin_th, cos_th)
             cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
             # Determine done flag
+            truncated = steps > 500
             done = steps > 500
             # Set info:
             info = dict()
-            return obs, -cost, done, info
+            return obs, -cost, truncated, done, info
 
-        def reset(self):
+        def reset(self, seed=None, options=None):
             states = self.state_space.sample()
             for key, value in states.items():
                 if "model_state" in key:
                     states[key] = value * 0.0
             obs = self._reset(states)
-            return obs
+            return obs, {}
 
     # Initialize Environment
     env = TestEnv(name, rate, graph, deepcopy(engine), backend, force_start=True)
     env2 = TestEnv(name + "_2", rate, graph2, deepcopy(engine), backend, force_start=True)
 
     # First reset
-    obs = env.reset()
-    obs2 = env2.reset()
+    obs, info = env.reset()
+    obs2, info2 = env2.reset()
     action = env.action_space.sample()
     for j in range(eps):
         print("\n[Episode %s]" % j)
         for i in range(steps):
-            obs, _, _, _ = env.step(action)
-            obs2, _, _, _ = env2.step(action)
+            obs, _, _, _, _ = env.step(action)
+            obs2, _, _, _, _ = env2.step(action)
 
             # Assert if result is the same with and without Jacobian
             assert np.allclose(obs["observation"], obs2["observation"])
