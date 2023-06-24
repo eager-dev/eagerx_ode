@@ -86,12 +86,12 @@ def test_ode_engine(eps, steps, sync, rtf, p):
             cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
             # Determine done flag
             truncated = steps > 500
-            done = steps > 500
+            terminated = False
             # Set info:
             info = dict()
             if self.render_mode == "human":
                 self.render()
-            return obs, -cost, truncated, done, info
+            return obs, -cost, terminated, truncated, info
 
         def reset(self, seed = None, options = None):
             states = self.state_space.sample()
@@ -202,10 +202,10 @@ def test_dfun(eps, steps, sync, rtf, p):
             cost = th ** 2 + 0.1 * (thdot / (1 + 10 * abs(th))) ** 2
             # Determine done flag
             truncated = steps > 500
-            done = steps > 500
+            terminated = False
             # Set info:
             info = dict()
-            return obs, -cost, truncated, done, info
+            return obs, -cost, terminated, truncated, info
 
         def reset(self, seed=None, options=None):
             states = self.state_space.sample()
