@@ -1,4 +1,3 @@
-# ROS packages required
 import eagerx
 from copy import deepcopy
 import numpy as np
@@ -63,10 +62,8 @@ def test_ode_engine(eps, steps, sync, rtf, p):
     engine = OdeEngine.make(rate=rate, sync=sync, real_time_factor=rtf, process=engine_p)
 
     # Define backend
-    from eagerx.backends.ros1 import Ros1
-    backend = Ros1.make()
-    # from eagerx.backends.single_process import SingleProcess
-    # backend = SingleProcess.make()
+    from eagerx.backends.single_process import SingleProcess
+    backend = SingleProcess.make()
 
     # Define environment
     class TestEnv(eagerx.BaseEnv):
@@ -179,8 +176,6 @@ def test_dfun(eps, steps, sync, rtf, p):
     engine = OdeEngine.make(rate=rate, sync=sync, real_time_factor=rtf, process=engine_p)
 
     # Define backend
-    # from eagerx.backends.ros1 import Ros1
-    # backend = Ros1.make()
     from eagerx.backends.single_process import SingleProcess
     backend = SingleProcess.make()
 
